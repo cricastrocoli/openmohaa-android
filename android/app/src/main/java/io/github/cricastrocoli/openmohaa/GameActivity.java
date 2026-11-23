@@ -2,6 +2,7 @@ package io.github.cricastrocoli.openmohaa;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ViewGroup;
 
 import org.libsdl.app.SDLActivity;
 
@@ -18,7 +19,17 @@ public class GameActivity extends SDLActivity {
         super.onCreate(savedInstanceState);
         // A lower render resolution: the GPU draws fewer pixels and the display scales them up.
         int w = getIntent().getIntExtra(EXTRA_WIDTH, 0), h = getIntent().getIntExtra(EXTRA_HEIGHT, 0);
-        if (w > 0 && h > 0 && mSurface != null) mSurface.getHolder().setFixedSize(w, h);
+        if (w > 0 && h > 0 && mSurface != null) {
+            mSurface.getHolder().setFixedSize(w, h);
+            // The view must still fill the screen (SDL adds it wrapping its content, which with
+            // a fixed size would shrink it to w x h in a corner); the buffer is scaled up to it.
+            ViewGroup.LayoutParams lp = mSurface.getLayoutParams();
+            if (lp != null) {
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                mSurface.setLayoutParams(lp);
+            }
+        }
     }
 
     @Override
