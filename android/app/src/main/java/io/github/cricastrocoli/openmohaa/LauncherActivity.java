@@ -50,6 +50,10 @@ public class LauncherActivity extends Activity {
     private static final int OK = Color.rgb(120, 200, 120);
     private static final int WARN = Color.rgb(230, 170, 80);
 
+    // The project's links, shown in the footer.
+    private static final String GITHUB_URL = "https://github.com/cricastrocoli/openmohaa-android";
+    private static final String YOUTUBE_URL = "https://www.youtube.com/@cricas";
+
     private enum Page { HOME, SETTINGS, CONTROLS, FILES, MODS }
 
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -128,7 +132,15 @@ public class LauncherActivity extends Activity {
         hints = row();
         footer.addView(hints);
         footer.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
-        footer.addView(text("v" + version(), 12, INK_DIM, false));
+        TextView madeBy = text("", 13, INK_DIM, false);
+        madeBy.setText(getText(R.string.made_by));
+        madeBy.setPadding(0, 0, dp(14), 0);
+        footer.addView(madeBy);
+        footer.addView(link(R.drawable.ic_github, true, getString(R.string.link_github), GITHUB_URL));
+        footer.addView(link(R.drawable.ic_youtube, false, getString(R.string.link_youtube), YOUTUBE_URL));
+        TextView ver = text("v" + version(), 12, INK_DIM, false);
+        ver.setPadding(dp(6), 0, 0, 0);
+        footer.addView(ver);
         column.addView(footer);
 
         setContentView(root);
@@ -781,6 +793,41 @@ public class LauncherActivity extends Activity {
         }
         focusable(c, new TextView[]{t, s, i}, click);
         return c;
+    }
+
+    // A small footer button with an icon that opens a web page. A white icon (tint) takes the
+    // text colour, so it stays visible when the button lights up.
+    private View link(int icon, boolean tint, String label, String url) {
+        LinearLayout b = row();
+        b.setPadding(dp(10), dp(5), dp(12), dp(5));
+        b.setContentDescription(label);
+        ImageView i = new ImageView(this);
+        i.setImageResource(icon);
+        if (tint) i.setColorFilter(INK);
+        b.addView(i, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(16)));
+        i.setAdjustViewBounds(true);
+        TextView t = text(label, 13, INK, true);
+        t.setPadding(dp(7), 0, 0, 0);
+        b.addView(t);
+        focusable(b, new TextView[]{t}, v -> openLink(url));
+        View.OnFocusChangeListener inner = b.getOnFocusChangeListener();
+        b.setOnFocusChangeListener((v, has) -> {
+            inner.onFocusChange(v, has);
+            if (tint) i.setColorFilter(has ? TEXT_ON_FOCUS : INK);
+        });
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.leftMargin = dp(6);
+        b.setLayoutParams(lp);
+        return b;
+    }
+
+    private void openLink(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (android.content.ActivityNotFoundException e) {
+            android.widget.Toast.makeText(this, getString(R.string.link_failed, url), android.widget.Toast.LENGTH_LONG).show();
+        }
     }
 
     // Makes a view a focusable, clickable tile that lights up when focused.

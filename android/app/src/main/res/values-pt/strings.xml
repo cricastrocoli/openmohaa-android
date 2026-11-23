@@ -81,4 +81,6 @@
     <string name="hint_toggle">Ligar / desligar</string>
     <string name="hint_remove">Remover</string>
     <string name="setting_game_desc">A campanha que o Jogar inicia: Allied Assault, Spearhead ou Breakthrough (se instalados).</string>
+    <string name="made_by">Port para Android por <b>cricastrocoli</b></string>
+    <string name="link_failed">Nenhum app aqui consegue abrir %1$s</string>
 </resources>

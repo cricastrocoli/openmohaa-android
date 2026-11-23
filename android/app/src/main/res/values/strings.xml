@@ -89,4 +89,8 @@
     <string name="hint_toggle">On / off</string>
     <string name="hint_remove">Remove</string>
     <string name="setting_game_desc">The campaign Play starts: Allied Assault, Spearhead or Breakthrough (if installed).</string>
+    <string name="made_by">Android port by <b>cricastrocoli</b></string>
+    <string name="link_github">GitHub</string>
+    <string name="link_youtube">YouTube</string>
+    <string name="link_failed">No app here can open %1$s</string>
 </resources>
