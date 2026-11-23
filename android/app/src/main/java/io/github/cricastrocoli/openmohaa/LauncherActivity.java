@@ -370,6 +370,10 @@ public class LauncherActivity extends Activity {
             public String label() { return getString(prefs.invertAim() ? R.string.on : R.string.off); }
             public void change(int s) { prefs.setInvertAim(!prefs.invertAim()); }
         });
+        option(list, R.string.setting_garand, R.string.setting_garand_desc, new Choice() {
+            public String label() { return getString(prefs.garandReload() ? R.string.on : R.string.off); }
+            public void change(int s) { prefs.setGarandReload(!prefs.garandReload()); }
+        });
         defaultFocus = first;
         first.requestFocus();
         return scroll(list);

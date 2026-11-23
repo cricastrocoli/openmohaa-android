@@ -31,11 +31,15 @@ public final class Prefs {
     public int resolution() { return clamp(p.getInt("resolution", 0), RESOLUTIONS.length); }
     public void setResolution(int i) { p.edit().putInt("resolution", i).apply(); }
 
-    public int frameRate() { return clamp(p.getInt("frameRate", 3), FRAME_RATES.length); }  // 120
+    public int frameRate() { return clamp(p.getInt("frameRate", 1), FRAME_RATES.length); }  // 60
     public void setFrameRate(int i) { p.edit().putInt("frameRate", i).apply(); }
 
     public int aimSpeed() { return clamp(p.getInt("aimSpeed", 5), AIM_SPEEDS.length); }     // 100%
     public void setAimSpeed(int i) { p.edit().putInt("aimSpeed", i).apply(); }
+
+    // The M1 Garand can be reloaded before its clip is empty (single player).
+    public boolean garandReload() { return p.getBoolean("garandReload", true); }
+    public void setGarandReload(boolean b) { p.edit().putBoolean("garandReload", b).apply(); }
 
     public boolean invertAim() { return p.getBoolean("invertAim", false); }
     public void setInvertAim(boolean b) { p.edit().putBoolean("invertAim", b).apply(); }
@@ -84,6 +88,7 @@ public final class Prefs {
         set(a, "com_target_game", Integer.toString(game()));
         set(a, "rp_aim_scale", Float.toString(AIM_SPEEDS[aimSpeed()] / 100f));
         set(a, "rp_aim_invert", invertAim() ? "1" : "0");
+        set(a, "g_garandreload", garandReload() ? "1" : "0");
         StringBuilder map = new StringBuilder();
         for (int i = 0; i < ACTIONS.length; i++) {
             if (i > 0) map.append(',');

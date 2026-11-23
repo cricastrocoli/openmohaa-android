@@ -103,4 +103,6 @@
     <string name="files_gog_noexe">Choose the installer\'s .exe file too, along with the .bin files.</string>
     <string name="files_gog_missing">Parts of the installer are missing. Choose the .exe and all the .bin files that came with it (for example setup_…-1.bin and setup_…-2.bin).</string>
     <string name="files_nospace">Not enough free space: %1$s are needed.</string>
+    <string name="setting_garand">Reload the rifle at any time</string>
+    <string name="setting_garand_desc">In the original game, the M1 Garand only reloads when its clip is empty. On, it reloads like the other weapons (campaign).</string>
 </resources>

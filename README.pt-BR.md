@@ -16,7 +16,10 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
 - 🆕 **Instalação direto do instalador da GOG, no aparelho.** Baixe o instalador para Windows
   (o `setup_….exe` e os arquivos `.bin`), escolha-os no launcher e pronto: o app extrai o jogo
   sozinho. No Retroid Pocket 6 isso leva cerca de **70 segundos** para os três jogos (2,7 GB).
-- 🆕 **Até 120 FPS** em telas de 120 Hz, com opções de 30, 60, 90, 120 ou sem limite.
+- 🆕 **Até 120 FPS** em telas de 120 Hz, com opções de 30, 60 (padrão), 90, 120 ou sem limite.
+- 🆕 **O rifle M1 Garand recarrega a qualquer momento.** No jogo original ele só recarrega
+  com o pente vazio; aqui ele recarrega como as outras armas, sem perder balas (opcional, na
+  campanha).
 - 🆕 **Mira analógica refinada** para o controle: zona morta radial, curva de resposta e
   aceleração ao manter o analógico no limite (para virar rápido), com velocidade ajustável.
 - 🆕 **Botões configuráveis**: qualquer ação em qualquer botão, direto no launcher.
@@ -59,9 +62,10 @@ Tudo abaixo foi feito para esta versão Android:
 |---|---|
 | Jogo | Allied Assault, Spearhead, Breakthrough (os que estiverem instalados) |
 | Resolução | Nativa, 1600×900, 1280×720, 960×540 |
-| Taxa de quadros | 30, 60, 90, **120**, sem limite |
+| Taxa de quadros | 30, **60** (padrão), 90, **120**, sem limite |
 | Velocidade da mira | 50% a 150% |
 | Inverter mira vertical | Ligado / desligado |
+| Recarregar o rifle a qualquer momento | Ligado (padrão) / desligado |
 
 ### Controles
 
@@ -140,8 +144,15 @@ nos menus do launcher.
   GOG, o instalador (cerca de 2,5 GB) precisa estar no aparelho durante a instalação; depois
   ele pode ser apagado.
 
-**Testado em:** Retroid Pocket 6. Outros aparelhos devem funcionar, mas ainda não foram
-testados. Relatos são bem-vindos nas [Issues](../../issues).
+**Testado em:**
+
+| Aparelho | Processador | Resultado |
+|---|---|---|
+| Retroid Pocket 6 | Snapdragon 8 Gen 2 (QCS8550) | Resolução nativa, 120 FPS |
+| Retroid Pocket 5 | Snapdragon 865 | Resolução nativa (1080p), 60 FPS estáveis |
+
+Outros aparelhos com processadores parecidos devem funcionar. Relatos são bem-vindos nas
+[Issues](../../issues).
 
 ## Instalação
 

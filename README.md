@@ -18,7 +18,10 @@ computer needed.
   installer (the `setup_….exe` and its `.bin` files), pick them in the launcher, done: the app
   extracts the game by itself. On a Retroid Pocket 6 this takes about **70 seconds** for all
   three games (2.7 GB).
-- 🆕 **Up to 120 FPS** on 120 Hz screens, with 30, 60, 90, 120 or unlimited.
+- 🆕 **Up to 120 FPS** on 120 Hz screens, with 30, 60 (default), 90, 120 or unlimited.
+- 🆕 **The M1 Garand rifle reloads at any time.** In the original game it only reloads when
+  its clip is empty; here it reloads like the other weapons, without losing rounds (optional,
+  in the campaign).
 - 🆕 **Refined analog aiming** for controllers: radial dead zone, response curve and a turn
   boost when the stick is held at its edge (for quick turns), with adjustable speed.
 - 🆕 **Remappable buttons**: any action on any button, right in the launcher.
@@ -62,9 +65,10 @@ Everything below was made for this Android version:
 |---|---|
 | Game | Allied Assault, Spearhead, Breakthrough (the installed ones) |
 | Resolution | Native, 1600×900, 1280×720, 960×540 |
-| Frame rate | 30, 60, 90, **120**, unlimited |
+| Frame rate | 30, **60** (default), 90, **120**, unlimited |
 | Aim speed | 50% to 150% |
 | Invert vertical aim | On / off |
+| Reload the rifle at any time | On (default) / off |
 
 ### Controls
 
@@ -136,8 +140,15 @@ launcher's menus.
   installer, the installer (about 2.5 GB) must be on the device while it installs; it can be
   deleted afterwards.
 
-**Tested on:** Retroid Pocket 6. Other devices should work but haven't been tested yet.
-Reports are welcome in [Issues](../../issues).
+**Tested on:**
+
+| Device | Chip | Result |
+|---|---|---|
+| Retroid Pocket 6 | Snapdragon 8 Gen 2 (QCS8550) | Native resolution, 120 FPS |
+| Retroid Pocket 5 | Snapdragon 865 | Native resolution (1080p), steady 60 FPS |
+
+Other devices with similar chips should work. Reports are welcome in
+[Issues](../../issues).
 
 ## Installing
 
