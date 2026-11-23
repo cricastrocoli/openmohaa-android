@@ -93,4 +93,8 @@
     <string name="link_github">GitHub</string>
     <string name="link_youtube">YouTube</string>
     <string name="link_failed">No app here can open %1$s</string>
+    <string name="summary_short">%1$s · %2$s</string>
+    <string name="campaign">Campaign</string>
+    <string name="campaign_missing">%1$s · not installed</string>
+    <string name="hint_campaign">Campaign</string>
 </resources>

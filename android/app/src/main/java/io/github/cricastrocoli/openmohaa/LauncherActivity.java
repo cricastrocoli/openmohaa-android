@@ -199,8 +199,15 @@ public class LauncherActivity extends Activity {
 
         page.addView(text(getString(ready ? R.string.home_ready : R.string.home_missing), 34, INK, true));
         TextView sub = text(ready ? summary() : getString(R.string.home_missing_sub), 15, INK_DIM, false);
-        sub.setPadding(0, dp(4), 0, dp(22));
+        sub.setPadding(0, dp(4), 0, ready ? dp(10) : dp(22));
         page.addView(sub);
+        if (ready) {
+            View campaigns = campaignRow(have);
+            LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            cp.bottomMargin = dp(18);
+            page.addView(campaigns, cp);
+        }
 
         LinearLayout grid = row();
         grid.setGravity(Gravity.TOP);
@@ -246,7 +253,72 @@ public class LauncherActivity extends Activity {
                 : getString(R.string.res_size, r[0], r[1]);
         int f = Prefs.FRAME_RATES[prefs.frameRate()];
         String fps = f == 0 ? getString(R.string.fps_unlimited) : getString(R.string.fps_value, f);
-        return getString(R.string.summary, res, fps, gameName(prefs.game()));
+        return getString(R.string.summary_short, res, fps);
+    }
+
+    // The campaign Play starts, chosen on the home page: a chip for each game, the chosen one
+    // lit; a game that isn't installed is dimmed and can't be chosen. LB / RB change it too.
+    private View campaignRow(boolean[] have) {
+        LinearLayout r = row();
+        r.setClipChildren(false);
+        TextView label = text(getString(R.string.campaign), 14, INK_DIM, false);
+        label.setPadding(0, 0, dp(12), 0);
+        r.addView(label);
+        for (int g = 0; g < 3; g++) {
+            boolean on = g == prefs.game();
+            String name = gameName(g);
+            TextView chip = text(have[g] ? name : getString(R.string.campaign_missing, name), 14,
+                    !have[g] ? Color.rgb(108, 106, 96) : on ? TEXT_ON_FOCUS : INK, on);
+            chip.setPadding(dp(14), dp(5), dp(14), dp(5));
+            chip.setContentDescription("campaign" + g);
+            GradientDrawable bg = new GradientDrawable();
+            bg.setCornerRadius(dp(40));
+            bg.setColor(on ? CARD_FOCUS : CARD);
+            if (on) bg.setStroke(dp(2), GOLD);
+            chip.setBackground(bg);
+            if (have[g]) {
+                int game = g;
+                chip.setFocusable(true);
+                chip.setClickable(true);
+                if (Build.VERSION.SDK_INT >= 26) chip.setDefaultFocusHighlightEnabled(false);
+                chip.setOnClickListener(v -> selectGame(game, "campaign" + game));
+                chip.setOnFocusChangeListener((v, has) -> {
+                    bg.setStroke(has ? dp(3) : on ? dp(2) : 0, has && on ? Color.rgb(140, 100, 30) : GOLD);
+                    v.animate().scaleX(has ? 1.06f : 1f).scaleY(has ? 1.06f : 1f).setDuration(120);
+                });
+            }
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.rightMargin = dp(8);
+            r.addView(chip, lp);
+        }
+        return r;
+    }
+
+    // Picks the campaign and redraws the home page, keeping the focus where it was.
+    private void selectGame(int g, String focusDesc) {
+        prefs.setGame(g);
+        showPage(Page.HOME);
+        if (focusDesc != null) {
+            View v = findCard(pageHolder, focusDesc);
+            if (v != null) v.requestFocus();
+        }
+    }
+
+    // LB / RB on the home page: the previous / next installed campaign.
+    private void stepGame(int step) {
+        boolean[] h = GameData.installed(this);
+        if (!h[0]) return;
+        int g = prefs.game();
+        for (int i = 1; i <= 3; i++) {
+            int n = ((g + step * i) % 3 + 3) % 3;
+            if (h[n]) { g = n; break; }
+        }
+        if (g == prefs.game()) return;
+        View f = getCurrentFocus();
+        CharSequence d = f != null ? f.getContentDescription() : null;
+        if (d != null && d.toString().startsWith("campaign")) d = "campaign" + g;
+        selectGame(g, d != null ? d.toString() : null);
     }
 
     private String gameName(int g) {
@@ -668,6 +740,11 @@ public class LauncherActivity extends Activity {
             }
             return true;
         }
+        if ((code == KeyEvent.KEYCODE_BUTTON_L1 || code == KeyEvent.KEYCODE_BUTTON_R1) && page == Page.HOME) {
+            if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0)
+                stepGame(code == KeyEvent.KEYCODE_BUTTON_L1 ? -1 : 1);
+            return true;
+        }
         if (code == KeyEvent.KEYCODE_BUTTON_Y && page == Page.MODS) {
             if (e.getAction() == KeyEvent.ACTION_UP) {
                 View f = getCurrentFocus();
@@ -735,6 +812,7 @@ public class LauncherActivity extends Activity {
         hint("A", p == Page.MODS ? R.string.hint_toggle : R.string.hint_select);
         if (p == Page.SETTINGS) hint("◀▶", R.string.hint_change);
         if (p == Page.MODS) hint("Y", R.string.hint_remove);
+        if (p == Page.HOME && GameData.installed(this)[0]) hint("LB RB", R.string.hint_campaign);
         hint("B", R.string.hint_back);
     }
 
