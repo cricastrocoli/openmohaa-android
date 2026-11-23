@@ -27,7 +27,7 @@ computer needed.
 - 🆕 **Mods and translations**, imported through the launcher, switched on and off, a set per
   game.
 - 🆕 **Spearhead and Breakthrough**: pick the campaign on the home page (LB / RB).
-- Allied Assault, Spearhead and Breakthrough in one app.
+- Allied Assault, Spearhead and Breakthrough in one app, all three tested.
 
 ## New in this port
 
@@ -159,8 +159,6 @@ it) to the device and use **Import from a folder** or **Import from files**.
 ## Known issues
 
 - Multiplayer hasn't been tested.
-- Spearhead and Breakthrough rely on OpenMoHAA's support for the expansions. The app installs
-  and starts both, but they have been tested less than Allied Assault.
 
 ## Building from source
 

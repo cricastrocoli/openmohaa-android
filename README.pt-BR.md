@@ -24,7 +24,7 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
   economizam bateria; a imagem é ampliada para a tela inteira).
 - 🆕 **Mods e traduções** com importação pelo launcher, ligar/desligar e um conjunto por jogo.
 - 🆕 **Spearhead e Breakthrough**: escolha a campanha na tela inicial (LB / RB).
-- Allied Assault, Spearhead e Breakthrough num só app.
+- Allied Assault, Spearhead e Breakthrough num só app, os três testados.
 
 ## Novidades deste port
 
@@ -164,8 +164,6 @@ para o aparelho e usar **Importar de uma pasta** ou **Importar de arquivos**.
 ## Problemas conhecidos
 
 - O multijogador não foi testado.
-- Spearhead e Breakthrough dependem do suporte do OpenMoHAA às expansões. O app instala e
-  inicia as duas, mas elas foram menos testadas que o Allied Assault.
 
 ## Compilar a partir do código-fonte
 
