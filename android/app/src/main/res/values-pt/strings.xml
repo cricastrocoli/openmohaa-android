@@ -57,7 +57,7 @@
     <string name="act_leanright">Inclinar à direita</string>
     <string name="act_menu">Menu do jogo</string>
     <string name="act_objectives">Objetivos / placar</string>
-    <string name="files_desc">O app precisa das pastas de dados da sua cópia do jogo (main, e mainta / maintt para as expansões). Copie a pasta de instalação do jogo para uma pasta deste aparelho (por exemplo Download/MOHAA: o Android não deixa apps usarem a raiz de Download nem do armazenamento) e escolha-a aqui. Só as pastas de dados são copiadas.</string>
+    <string name="files_desc">O app precisa das pastas de dados da sua cópia do jogo (main, e mainta / maintt para as expansões). Copie a pasta de instalação do jogo para este aparelho, numa subpasta (por exemplo Download/MOHAA: o Android não deixa apps usarem a raiz de Download nem do armazenamento), ou um .zip dela, e escolha aqui. Só as pastas de dados são copiadas.</string>
     <string name="files_installed">Instalado</string>
     <string name="files_not_installed">Não instalado</string>
     <string name="files_storage">Espaço usado: %1$s</string>
@@ -76,7 +76,7 @@
     <string name="mods_remove_message">Remover %1$s? Ele será apagado do app.</string>
     <string name="mods_remove">Remover</string>
     <string name="mods_imported">%1$d mod(s) instalado(s). Eles valem a partir da próxima vez que o jogo abrir.</string>
-    <string name="mods_none_imported">Nenhum arquivo .pk3 ou .zip foi escolhido.</string>
+    <string name="mods_none_imported">Nada foi instalado. Escolha arquivos .pk3 ou .zip de mods: um .zip precisa conter arquivos .pk3 ou pastas do jogo (global, textures, sound, maps…).</string>
     <string name="mods_error">Algo deu errado: %1$s</string>
     <string name="hint_toggle">Ligar / desligar</string>
     <string name="hint_remove">Remover</string>
@@ -86,4 +86,7 @@
     <string name="campaign">Campanha</string>
     <string name="campaign_missing">%1$s · não instalado</string>
     <string name="hint_campaign">Campanha</string>
+    <string name="files_import_zip">Importar de um arquivo (.zip)</string>
+    <string name="files_none_file">Nenhum arquivo do jogo nesse arquivo. Ele precisa conter a pasta do jogo, ou a pasta “main”.</string>
+    <string name="files_unsupported">Esse tipo de arquivo não pode ser importado. Escolha um .zip da pasta do jogo.</string>
 </resources>

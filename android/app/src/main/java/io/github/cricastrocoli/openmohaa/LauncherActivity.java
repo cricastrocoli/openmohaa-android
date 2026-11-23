@@ -39,6 +39,7 @@ import org.libsdl.app.R;
 public class LauncherActivity extends Activity {
     private static final int REQ_IMPORT = 1;
     private static final int REQ_MODS = 2;
+    private static final int REQ_IMPORT_FILE = 3;
 
     // Colours.
     private static final int INK = Color.rgb(236, 231, 214);         // text on dark
@@ -518,6 +519,13 @@ public class LauncherActivity extends Activity {
         focusable(importRow, new TextView[]{il}, v -> { if (!importing) pickImportFolder(); });
         list.addView(importRow, listItem());
 
+        LinearLayout fileRow = row();
+        fileRow.setPadding(dp(18), dp(14), dp(18), dp(14));
+        TextView fl = text("⤓  " + getString(R.string.files_import_zip), 17, GOLD, true);
+        fileRow.addView(fl);
+        focusable(fileRow, new TextView[]{fl}, v -> { if (!importing) pickImportFile(); });
+        list.addView(fileRow, listItem());
+
         importBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         importBar.setMax(1000);
         importBar.setVisibility(importing ? View.VISIBLE : View.GONE);
@@ -535,6 +543,13 @@ public class LauncherActivity extends Activity {
         startActivityForResult(i, REQ_IMPORT);
     }
 
+    private void pickImportFile() {
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        startActivityForResult(i, REQ_IMPORT_FILE);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -542,22 +557,27 @@ public class LauncherActivity extends Activity {
             importModsResult(data);
             return;
         }
-        if (requestCode != REQ_IMPORT || resultCode != RESULT_OK || data == null || data.getData() == null) return;
-        Uri tree = data.getData();
+        if ((requestCode != REQ_IMPORT && requestCode != REQ_IMPORT_FILE) || resultCode != RESULT_OK
+                || data == null || data.getData() == null) return;
+        Uri picked = data.getData();
+        boolean fromFile = requestCode == REQ_IMPORT_FILE;
         importing = true;
         showPage(Page.FILES);
         importBar.setVisibility(View.VISIBLE);
         new Thread(() -> {
-            GameData.ImportResult r = GameData.importFrom(this, tree, (done, total, file) -> ui.post(() -> {
+            GameData.Progress progress = (done, total, file) -> ui.post(() -> {
                 int pct = total > 0 ? (int) (done * 100 / total) : 0;
                 if (importBar != null) importBar.setProgress(total > 0 ? (int) (done * 1000 / total) : 0);
                 if (importText != null) importText.setText(getString(R.string.files_importing, pct) + "\n" + file);
-            }));
+            });
+            GameData.ImportResult r = fromFile ? GameData.importFile(this, picked, progress)
+                    : GameData.importFrom(this, picked, progress);
             ui.post(() -> {
                 importing = false;
                 showPage(Page.FILES);
                 importText.setText(r.error == null ? getString(R.string.files_done)
-                        : r.error.equals("nofiles") ? getString(R.string.files_none)
+                        : r.error.equals("nofiles") ? getString(fromFile ? R.string.files_none_file : R.string.files_none)
+                        : r.error.equals("unsupported") ? getString(R.string.files_unsupported)
                         : getString(R.string.files_error, r.error));
                 loadBackground();
             });

@@ -64,7 +64,7 @@
     <string name="act_leanright">Lean right</string>
     <string name="act_menu">Game menu</string>
     <string name="act_objectives">Objectives / scores</string>
-    <string name="files_desc">The app needs the data folders of your copy of the game (main, and mainta / maintt for the expansions). Copy the game\'s installation folder into a folder on this device (for example Download/MOHAA: Android doesn\'t let apps use the top of Download or of the storage), then pick it here. Only the data folders are copied.</string>
+    <string name="files_desc">The app needs the data folders of your copy of the game (main, plus mainta / maintt for the expansions). Copy the game\'s install folder to this device, into a subfolder (for example Download/MOHAA: Android doesn\'t let apps use the root of Download or of the storage), or a .zip of it, and choose it here. Only the data folders are copied.</string>
     <string name="files_installed">Installed</string>
     <string name="files_not_installed">Not installed</string>
     <string name="files_storage">Space used: %1$s</string>
@@ -84,7 +84,7 @@
     <string name="mods_remove_message">Remove %1$s? It is deleted from the app.</string>
     <string name="mods_remove">Remove</string>
     <string name="mods_imported">%1$d mod(s) installed. They are used the next time the game starts.</string>
-    <string name="mods_none_imported">No .pk3 or .zip files were picked.</string>
+    <string name="mods_none_imported">Nothing was installed. Choose .pk3 or .zip mod files: a .zip must hold .pk3 files or game folders (global, textures, sound, maps…).</string>
     <string name="mods_error">Something went wrong: %1$s</string>
     <string name="hint_toggle">On / off</string>
     <string name="hint_remove">Remove</string>
@@ -97,4 +97,7 @@
     <string name="campaign">Campaign</string>
     <string name="campaign_missing">%1$s · not installed</string>
     <string name="hint_campaign">Campaign</string>
+    <string name="files_import_zip">Import from a file (.zip)</string>
+    <string name="files_none_file">No game files in that file. It must hold the game\'s folder, or its “main” folder.</string>
+    <string name="files_unsupported">That kind of file can\'t be imported. Choose a .zip of the game\'s folder.</string>
 </resources>

@@ -110,6 +110,110 @@ public final class GameData {
         }
     }
 
+    // Imports the game from a file picked with the system picker: a .zip of the game's folder.
+    public static ImportResult importFile(Context c, Uri file, Progress progress) {
+        String name = displayName(c.getContentResolver(), file).toLowerCase();
+        if (name.endsWith(".zip")) return importZip(c, file, progress);
+        return new ImportResult(0, "unsupported");
+    }
+
+    // Copies the game's data folders out of a .zip of the game's install folder (or of its main
+    // folder): files under main / mainta / maintt, whatever folders come before; or, with none
+    // of those, the files beside pak0.pk3, as main. Runs on the calling thread.
+    public static ImportResult importZip(Context c, Uri zip, Progress progress) {
+        ContentResolver cr = c.getContentResolver();
+        // ZipFile needs a path: the picked file's descriptor gives one.
+        try (android.os.ParcelFileDescriptor pfd = cr.openFileDescriptor(zip, "r");
+             ZipFile z = new ZipFile("/proc/self/fd/" + pfd.getFd())) {
+            List<ZipEntry> entries = new ArrayList<>();
+            for (Enumeration<? extends ZipEntry> e = z.entries(); e.hasMoreElements(); ) {
+                ZipEntry en = e.nextElement();
+                if (!en.isDirectory()) entries.add(en);
+            }
+            // Where each file goes: "main/..." etc. under the game folder.
+            List<String> targets = new ArrayList<>();
+            boolean found = false;
+            for (ZipEntry en : entries) {
+                String t = placeInGame(en.getName());
+                targets.add(t);
+                if (t != null) found = true;
+            }
+            if (!found) {
+                String mainDir = null;
+                for (ZipEntry en : entries) {
+                    String n = en.getName().replace('\\', '/');
+                    if (n.toLowerCase().endsWith("pak0.pk3") && (n.length() == 8 || n.charAt(n.length() - 9) == '/')) {
+                        mainDir = n.substring(0, n.length() - 8);
+                        break;
+                    }
+                }
+                if (mainDir == null) return new ImportResult(0, "nofiles");
+                for (int i = 0; i < entries.size(); i++) {
+                    String n = entries.get(i).getName().replace('\\', '/');
+                    targets.set(i, n.startsWith(mainDir) ? "main/" + n.substring(mainDir.length()) : null);
+                }
+            }
+            long total = 0;
+            java.util.Set<String> games = new java.util.HashSet<>();
+            for (int i = 0; i < entries.size(); i++) {
+                String t = targets.get(i);
+                if (t == null) continue;
+                total += Math.max(0, entries.get(i).getSize());
+                games.add(t.substring(0, t.indexOf('/')));
+            }
+            File game = gameDir(c);
+            long done = 0;
+            byte[] buf = new byte[1 << 20];
+            for (int i = 0; i < entries.size(); i++) {
+                String t = targets.get(i);
+                if (t == null) continue;
+                ZipEntry en = entries.get(i);
+                File target = new File(game, t);
+                String shown = t.substring(t.lastIndexOf('/') + 1);
+                if (target.isFile() && target.length() == en.getSize()) {
+                    done += en.getSize();
+                    progress.update(done, total, shown);
+                    continue;
+                }
+                File dir = target.getParentFile();
+                if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Can't create " + dir);
+                File part = new File(dir, target.getName() + ".part");
+                try (InputStream in = z.getInputStream(en); OutputStream out = new FileOutputStream(part)) {
+                    int n;
+                    long lastReport = 0;
+                    while ((n = in.read(buf)) > 0) {
+                        out.write(buf, 0, n);
+                        done += n;
+                        if (done - lastReport > (4 << 20)) {
+                            progress.update(done, total, shown);
+                            lastReport = done;
+                        }
+                    }
+                }
+                if (target.exists() && !target.delete()) throw new IOException("Can't replace " + target);
+                if (!part.renameTo(target)) throw new IOException("Can't write " + target);
+                progress.update(done, total, shown);
+            }
+            return new ImportResult(games.size(), null);
+        } catch (IOException | RuntimeException e) {
+            return new ImportResult(0, e.getMessage() != null ? e.getMessage() : e.toString());
+        }
+    }
+
+    // "Some/Folder/MAIN/pak0.pk3" -> "main/pak0.pk3"; null when not under a game data folder.
+    static String placeInGame(String entry) {
+        String[] seg = entry.replace('\\', '/').split("/");
+        for (int i = 0; i < seg.length - 1; i++) {
+            for (String f : FOLDERS) {
+                if (seg[i].equalsIgnoreCase(f)) {
+                    String rest = join(seg, i + 1);
+                    return rest.isEmpty() ? null : f + "/" + rest;
+                }
+            }
+        }
+        return null;
+    }
+
     private static List<Doc> children(ContentResolver cr, Uri tree, String parentId) {
         List<Doc> r = new ArrayList<>();
         Uri uri = DocumentsContract.buildChildDocumentsUriUsingTree(tree, parentId);
@@ -204,12 +308,19 @@ public final class GameData {
         return f.renameTo(to);
     }
 
-    // Installs mods picked with the system file picker: .pk3 files as they are; from a .zip,
-    // the .pk3 files inside it, or, when it has none, the .zip itself as a .pk3 (a .pk3 is a
-    // .zip of game files). Returns the number of mods installed, or -1 with nothing usable.
+    // Top-level folders of the game's data: a zip whose files sit under one of these (at its
+    // root or below some folder of its own) is a mod made of loose files.
+    private static final String[] ASSET_DIRS = {"global", "textures", "sound", "music", "maps", "models",
+            "ui", "scripts", "fonts", "gfx", "ubersound", "env", "video", "anims", "static", "sprites",
+            "effects", "skins", "players"};
+
+    // Installs mods picked with the system file picker. A .pk3 goes in as it is. From a .zip:
+    // the .pk3 files inside it; or, when it has none, its game files packed into a .pk3. In a
+    // zip, files under main / mainta / maintt go to that game, whatever folders come before
+    // ("MyMod/main/global/..."); others go to the chosen game, from their game data folder on
+    // ("MyMod/global/..." becomes "global/..."); anything else (a readme) is left out.
+    // Returns the number of mods installed, or -1 with nothing usable.
     public static int importMods(Context c, List<Uri> uris, int game) throws IOException {
-        File dir = modsDir(c, game);
-        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Can't create " + dir);
         ContentResolver cr = c.getContentResolver();
         int count = 0;
         byte[] buf = new byte[1 << 20];
@@ -218,30 +329,99 @@ public final class GameData {
             String lower = name.toLowerCase();
             if (lower.endsWith(".pk3")) {
                 try (InputStream in = cr.openInputStream(u)) {
-                    copy(in, new File(dir, name), buf);
+                    copy(in, new File(modsDir(c, game, true), name), buf);
                 }
                 count++;
             } else if (lower.endsWith(".zip")) {
-                int inside = 0;
-                try (java.util.zip.ZipInputStream zin = new java.util.zip.ZipInputStream(cr.openInputStream(u))) {
-                    for (ZipEntry e; (e = zin.getNextEntry()) != null; ) {
-                        String en = e.getName();
-                        if (e.isDirectory() || !en.toLowerCase().endsWith(".pk3")) continue;
-                        String base = en.substring(en.lastIndexOf('/') + 1);
-                        copy(zin, new File(dir, base), buf);
-                        inside++;
-                    }
-                }
-                if (inside == 0) {
-                    try (InputStream in = cr.openInputStream(u)) {
-                        copy(in, new File(dir, name.substring(0, name.length() - 4) + ".pk3"), buf);
-                    }
-                    inside = 1;
-                }
-                count += inside;
+                count += importModZip(c, cr, u, name.substring(0, name.length() - 4), game, buf);
             }
         }
         return count == 0 ? -1 : count;
+    }
+
+    private static File modsDir(Context c, int game, boolean create) throws IOException {
+        File dir = modsDir(c, game);
+        if (create && !dir.isDirectory() && !dir.mkdirs()) throw new IOException("Can't create " + dir);
+        return dir;
+    }
+
+    // Where a file in a mod zip belongs: {game, path inside the game's data}, or null.
+    private static Object[] placeInMod(String entry, int game) {
+        String[] seg = entry.replace('\\', '/').split("/");
+        for (int i = 0; i < seg.length - 1; i++) {
+            for (int g = 0; g < FOLDERS.length; g++) {
+                if (seg[i].equalsIgnoreCase(FOLDERS[g])) return new Object[]{g, join(seg, i + 1)};
+            }
+        }
+        for (int i = 0; i < seg.length - 1; i++) {
+            for (String a : ASSET_DIRS) if (seg[i].equalsIgnoreCase(a)) return new Object[]{game, join(seg, i)};
+        }
+        return null;
+    }
+
+    private static String join(String[] seg, int from) {
+        StringBuilder b = new StringBuilder();
+        for (int i = from; i < seg.length; i++) {
+            if (seg[i].isEmpty()) continue;
+            if (b.length() > 0) b.append('/');
+            b.append(seg[i]);
+        }
+        return b.toString();
+    }
+
+    private static int importModZip(Context c, ContentResolver cr, Uri u, String base, int game, byte[] buf)
+            throws IOException {
+        // First look: .pk3 files inside, or game files.
+        boolean pk3s = false, loose = false;
+        try (java.util.zip.ZipInputStream zin = new java.util.zip.ZipInputStream(cr.openInputStream(u))) {
+            for (ZipEntry e; (e = zin.getNextEntry()) != null; ) {
+                if (e.isDirectory()) continue;
+                if (e.getName().toLowerCase().endsWith(".pk3")) pk3s = true;
+                else if (placeInMod(e.getName(), game) != null) loose = true;
+            }
+        }
+        if (!pk3s && !loose) return 0;
+        int count = 0;
+        java.util.Map<Integer, java.util.zip.ZipOutputStream> packs = new java.util.HashMap<>();
+        java.util.Map<Integer, File> parts = new java.util.HashMap<>();
+        try (java.util.zip.ZipInputStream zin = new java.util.zip.ZipInputStream(cr.openInputStream(u))) {
+            for (ZipEntry e; (e = zin.getNextEntry()) != null; ) {
+                if (e.isDirectory()) continue;
+                String en = e.getName().replace('\\', '/');
+                if (pk3s) {
+                    if (!en.toLowerCase().endsWith(".pk3")) continue;
+                    Object[] p = placeInMod(en, game);
+                    int g = p != null ? (Integer) p[0] : game;
+                    copy(zin, new File(modsDir(c, g, true), en.substring(en.lastIndexOf('/') + 1)), buf);
+                    count++;
+                    continue;
+                }
+                Object[] p = placeInMod(en, game);
+                if (p == null) continue;
+                int g = (Integer) p[0];
+                java.util.zip.ZipOutputStream out = packs.get(g);
+                if (out == null) {
+                    File part = new File(modsDir(c, g, true), base + ".pk3.part");
+                    parts.put(g, part);
+                    out = new java.util.zip.ZipOutputStream(new java.io.BufferedOutputStream(new FileOutputStream(part)));
+                    packs.put(g, out);
+                }
+                out.putNextEntry(new ZipEntry((String) p[1]));
+                int n;
+                while ((n = zin.read(buf)) > 0) out.write(buf, 0, n);
+                out.closeEntry();
+            }
+        } finally {
+            for (java.util.zip.ZipOutputStream out : packs.values()) out.close();
+        }
+        for (java.util.Map.Entry<Integer, File> pe : parts.entrySet()) {
+            File part = pe.getValue();
+            File to = new File(part.getParentFile(), base + ".pk3");
+            if (to.exists() && !to.delete()) throw new IOException("Can't replace " + to);
+            if (!part.renameTo(to)) throw new IOException("Can't write " + to);
+            count++;
+        }
+        return count;
     }
 
     private static String displayName(ContentResolver cr, Uri u) {
