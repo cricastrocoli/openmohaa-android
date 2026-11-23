@@ -38,6 +38,7 @@ import org.libsdl.app.R;
 // back, left/right to change a setting) and by touch.
 public class LauncherActivity extends Activity {
     private static final int REQ_IMPORT = 1;
+    private static final int REQ_MODS = 2;
 
     // Colours.
     private static final int INK = Color.rgb(236, 231, 214);         // text on dark
@@ -49,7 +50,7 @@ public class LauncherActivity extends Activity {
     private static final int OK = Color.rgb(120, 200, 120);
     private static final int WARN = Color.rgb(230, 170, 80);
 
-    private enum Page { HOME, SETTINGS, CONTROLS, FILES }
+    private enum Page { HOME, SETTINGS, CONTROLS, FILES, MODS }
 
     private final Handler ui = new Handler(Looper.getMainLooper());
     private Prefs prefs;
@@ -91,7 +92,7 @@ public class LauncherActivity extends Activity {
 
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
-        column.setPadding(dp(40), dp(22), dp(40), dp(16));
+        column.setPadding(dp(32), dp(22), dp(32), dp(16));
         root.addView(column, match());
 
         // Header: the medal and the name; the game files' status on the right.
@@ -115,7 +116,9 @@ public class LauncherActivity extends Activity {
         column.addView(header);
 
         pageHolder = new FrameLayout(this);
-        pageHolder.setClipChildren(false);
+        // Pages stay inside their area (lists scroll under nothing); the padding gives a focused
+        // tile's slight enlargement room to show.
+        pageHolder.setPadding(dp(8), dp(6), dp(8), dp(6));
         column.setClipChildren(false);
         column.setClipToPadding(false);
         column.addView(pageHolder, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
@@ -153,6 +156,7 @@ public class LauncherActivity extends Activity {
             case SETTINGS: v = settingsPage(); break;
             case CONTROLS: v = controlsPage(); break;
             case FILES: v = filesPage(); break;
+            case MODS: v = modsPage(); break;
             default: v = homePage(); break;
         }
         pageHolder.addView(v, match());
@@ -163,7 +167,7 @@ public class LauncherActivity extends Activity {
             if (f == null || !isDescendant(pageHolder, f)) first.requestFocus();
         });
         refreshStatus();
-        setHints(p == Page.SETTINGS);
+        setHints(p);
     }
 
     private void refreshStatus() {
@@ -210,20 +214,8 @@ public class LauncherActivity extends Activity {
                 v -> showPage(Page.CONTROLS)), weighted(dp(98), 1, 0, 0));
         bottom.addView(card(getString(R.string.files), getString(R.string.files_sub), "▤", false,
                 v -> showPage(Page.FILES)), weighted(dp(98), 1, 0, dp(14)));
-        // The game card cycles through the installed games (Allied Assault and its expansions).
-        TextView[] gameSub = new TextView[1];
-        View gameCard = card(getString(R.string.game), gameName(prefs.game()), "★", false, v -> {
-            boolean[] h = GameData.installed(this);
-            int g = prefs.game();
-            for (int i = 1; i <= 3; i++) if (h[(g + i) % 3]) { g = (g + i) % 3; break; }
-            prefs.setGame(g);
-            showPage(Page.HOME);
-            focusGameCard();
-        });
-        gameCard.setTag("game");
-        gameCard.setEnabled(ready);
-        gameCard.setAlpha(ready ? 1f : 0.5f);
-        bottom.addView(gameCard, weighted(dp(98), 1, 0, 0));
+        bottom.addView(card(getString(R.string.mods), getString(R.string.mods_sub), "✚", false,
+                v -> showPage(Page.MODS)), weighted(dp(98), 1, 0, 0));
         right.addView(top);
         LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -234,11 +226,6 @@ public class LauncherActivity extends Activity {
         defaultFocus = main;
         main.requestFocus();
         return page;
-    }
-
-    private void focusGameCard() {
-        View v = pageHolder.findViewWithTag("game");
-        if (v != null) v.requestFocus();
     }
 
     private String summary() {
@@ -263,7 +250,20 @@ public class LauncherActivity extends Activity {
 
     private View settingsPage() {
         LinearLayout list = pageColumn(R.string.settings);
-        View first = option(list, R.string.setting_resolution, R.string.setting_resolution_desc, new Choice() {
+        // Which game Play starts: Allied Assault, or an installed expansion.
+        View first = option(list, R.string.game, R.string.setting_game_desc, new Choice() {
+            public String label() { return gameName(prefs.game()); }
+            public void change(int step) {
+                boolean[] h = GameData.installed(LauncherActivity.this);
+                int g = prefs.game();
+                for (int i = 1; i <= 3; i++) {
+                    int n = ((g + step * i) % 3 + 3) % 3;
+                    if (h[n]) { g = n; break; }
+                }
+                prefs.setGame(g);
+            }
+        });
+        option(list, R.string.setting_resolution, R.string.setting_resolution_desc, new Choice() {
             public String label() {
                 int[] r = Prefs.RESOLUTIONS[prefs.resolution()];
                 return r[0] == 0 ? getString(R.string.res_native, screenW, screenH) : getString(R.string.res_size, r[0], r[1]);
@@ -454,6 +454,10 @@ public class LauncherActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_MODS && resultCode == RESULT_OK && data != null) {
+            importModsResult(data);
+            return;
+        }
         if (requestCode != REQ_IMPORT || resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri tree = data.getData();
         importing = true;
@@ -474,6 +478,141 @@ public class LauncherActivity extends Activity {
                 loadBackground();
             });
         }, "import").start();
+    }
+
+    // ---- Mods ------------------------------------------------------------------------------
+
+    private int modsGame = -1;  // the game whose mods are shown (and imported to)
+
+    private View modsPage() {
+        boolean[] have = GameData.installed(this);
+        if (modsGame < 0 || !have[modsGame]) modsGame = have[prefs.game()] ? prefs.game() : 0;
+        LinearLayout list = pageColumn(R.string.mods);
+        TextView desc = text(getString(R.string.mods_desc), 14, INK_DIM, false);
+        desc.setPadding(dp(4), 0, 0, dp(12));
+        list.addView(desc);
+
+        // Which game's mods: left/right to change.
+        LinearLayout gameRow = row();
+        gameRow.setPadding(dp(18), dp(12), dp(18), dp(12));
+        TextView gl = text(getString(R.string.game), 17, INK, true);
+        gameRow.addView(gl, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView gv = text("◀  " + gameName(modsGame) + "  ▶", 17, GOLD, true);
+        gameRow.addView(gv);
+        Runnable nextGame = () -> {
+            for (int i = 1; i <= 3; i++) if (have[(modsGame + i) % 3]) { modsGame = (modsGame + i) % 3; break; }
+            showPage(Page.MODS);
+        };
+        focusable(gameRow, new TextView[]{gl, gv}, v -> nextGame.run());
+        gameRow.setOnKeyListener((v, code, e) -> {
+            if (e.getAction() != KeyEvent.ACTION_DOWN) return false;
+            if (code != KeyEvent.KEYCODE_DPAD_LEFT && code != KeyEvent.KEYCODE_DPAD_RIGHT) return false;
+            nextGame.run();
+            return true;
+        });
+        list.addView(gameRow, listItem());
+
+        LinearLayout importRow = row();
+        importRow.setPadding(dp(18), dp(12), dp(18), dp(12));
+        TextView il = text("✚  " + getString(R.string.mods_import), 17, GOLD, true);
+        importRow.addView(il);
+        focusable(importRow, new TextView[]{il}, v -> pickMods());
+        list.addView(importRow, listItem());
+
+        java.util.List<java.io.File> mods = GameData.mods(this, modsGame);
+        if (mods.isEmpty()) {
+            TextView none = text(getString(R.string.mods_none), 15, INK_DIM, false);
+            none.setPadding(dp(22), dp(6), 0, dp(6));
+            list.addView(none);
+        }
+        for (java.io.File f : mods) {
+            LinearLayout r = row();
+            r.setPadding(dp(18), dp(10), dp(18), dp(10));
+            r.setTag(f);
+            TextView n = text(GameData.modName(f), 16, INK, false);
+            r.addView(n, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            boolean on = GameData.modOn(f);
+            TextView state = text(getString(on ? R.string.on : R.string.off), 16, on ? OK : INK_DIM, true);
+            r.addView(state);
+            focusable(r, new TextView[]{n, state}, v -> {
+                GameData.setModOn(f, !GameData.modOn(f));
+                focusModAfterRebuild(GameData.modName(f));
+            });
+            r.setOnLongClickListener(v -> { confirmRemoveMod(f); return true; });
+            list.addView(r, listItem());
+        }
+        TextView note = text(getString(R.string.mods_note), 13, INK_DIM, false);
+        note.setPadding(dp(4), dp(10), 0, 0);
+        list.addView(note);
+        if (modsStatus != null) {
+            TextView st = text(modsStatus, 14, GOLD, false);
+            st.setPadding(dp(4), dp(8), 0, 0);
+            list.addView(st);
+            modsStatus = null;
+        }
+        defaultFocus = gameRow;
+        return scroll(list);
+    }
+
+    private String modsStatus;  // shown once on the next Mods page
+
+    private void focusModAfterRebuild(String name) {
+        showPage(Page.MODS);
+        View row = findModRow((ViewGroup) pageHolder.getChildAt(0), name);
+        if (row != null) row.requestFocus();
+    }
+
+    private View findModRow(ViewGroup g, String name) {
+        for (int i = 0; i < g.getChildCount(); i++) {
+            View c = g.getChildAt(i);
+            if (c.getTag() instanceof java.io.File && GameData.modName((java.io.File) c.getTag()).equals(name)) return c;
+            if (c instanceof ViewGroup) {
+                View r = findModRow((ViewGroup) c, name);
+                if (r != null) return r;
+            }
+        }
+        return null;
+    }
+
+    private void confirmRemoveMod(java.io.File f) {
+        new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle(R.string.mods_remove_title)
+                .setMessage(getString(R.string.mods_remove_message, GameData.modName(f)))
+                .setPositiveButton(R.string.mods_remove, (d, w) -> {
+                    if (!f.delete()) modsStatus = getString(R.string.mods_error, f.getName());
+                    showPage(Page.MODS);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void pickMods() {
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(i, REQ_MODS);
+    }
+
+    private void importModsResult(Intent data) {
+        java.util.List<Uri> uris = new java.util.ArrayList<>();
+        if (data.getClipData() != null) {
+            for (int i = 0; i < data.getClipData().getItemCount(); i++) uris.add(data.getClipData().getItemAt(i).getUri());
+        } else if (data.getData() != null) {
+            uris.add(data.getData());
+        }
+        int game = modsGame;
+        new Thread(() -> {
+            String msg;
+            try {
+                int n = GameData.importMods(this, uris, game);
+                msg = n < 0 ? getString(R.string.mods_none_imported) : getString(R.string.mods_imported, n);
+            } catch (Exception e) {
+                msg = getString(R.string.mods_error, e.getMessage() != null ? e.getMessage() : e.toString());
+            }
+            String m = msg;
+            ui.post(() -> { modsStatus = m; showPage(Page.MODS); });
+        }, "mods").start();
     }
 
     // ---- Play ------------------------------------------------------------------------------
@@ -517,6 +656,13 @@ public class LauncherActivity extends Activity {
             }
             return true;
         }
+        if (code == KeyEvent.KEYCODE_BUTTON_Y && page == Page.MODS) {
+            if (e.getAction() == KeyEvent.ACTION_UP) {
+                View f = getCurrentFocus();
+                if (f != null && f.getTag() instanceof java.io.File) confirmRemoveMod((java.io.File) f.getTag());
+            }
+            return true;
+        }
         if (code == KeyEvent.KEYCODE_BUTTON_B || code == KeyEvent.KEYCODE_BACK) {
             if (e.getAction() == KeyEvent.ACTION_UP) goBack();
             return true;
@@ -544,7 +690,8 @@ public class LauncherActivity extends Activity {
             // Back on the card that led there.
             ViewGroup home = (ViewGroup) pageHolder.getChildAt(0);
             View card = findCard(home, from == Page.SETTINGS ? getString(R.string.settings)
-                    : from == Page.CONTROLS ? getString(R.string.controls) : getString(R.string.files));
+                    : from == Page.CONTROLS ? getString(R.string.controls)
+                    : from == Page.MODS ? getString(R.string.mods) : getString(R.string.files));
             if (card != null) card.requestFocus();
         } else {
             finish();
@@ -570,11 +717,12 @@ public class LauncherActivity extends Activity {
         return null;
     }
 
-    private void setHints(boolean change) {
+    private void setHints(Page p) {
         hints.removeAllViews();
         hint("✥", R.string.hint_move);
-        hint("A", R.string.hint_select);
-        if (change) hint("◀▶", R.string.hint_change);
+        hint("A", p == Page.MODS ? R.string.hint_toggle : R.string.hint_select);
+        if (p == Page.SETTINGS) hint("◀▶", R.string.hint_change);
+        if (p == Page.MODS) hint("Y", R.string.hint_remove);
         hint("B", R.string.hint_back);
     }
 
@@ -671,7 +819,9 @@ public class LauncherActivity extends Activity {
     private ScrollView scroll(View content) {
         ScrollView s = new ScrollView(this);
         s.setVerticalScrollBarEnabled(false);
-        s.setClipToPadding(false);
+        // Lists scroll inside their page (not over the footer); a little room keeps a focused
+        // row's highlight clear of the edges.
+        s.setClipChildren(true);
         s.addView(content);
         return s;
     }

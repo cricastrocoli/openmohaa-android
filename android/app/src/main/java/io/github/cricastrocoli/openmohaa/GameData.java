@@ -165,6 +165,104 @@ public final class GameData {
         }
     }
 
+    // ---- Mods ------------------------------------------------------------------------------
+    //
+    // Mods are .pk3 files in the player's folder for each game (home/main, home/mainta,
+    // home/maintt), which the engine reads after, and so over, the game's own. A mod that is
+    // switched off is renamed to .pk3.off.
+
+    public static final String OFF = ".off";
+
+    public static File modsDir(Context c, int game) {
+        return new File(new File(c.getExternalFilesDir(null), "home"), FOLDERS[game]);
+    }
+
+    public static List<File> mods(Context c, int game) {
+        List<File> r = new ArrayList<>();
+        File[] files = modsDir(c, game).listFiles();
+        if (files == null) return r;
+        for (File f : files) {
+            String n = f.getName().toLowerCase();
+            if (f.isFile() && (n.endsWith(".pk3") || n.endsWith(".pk3" + OFF))) r.add(f);
+        }
+        r.sort((a, b) -> modName(a).compareToIgnoreCase(modName(b)));
+        return r;
+    }
+
+    public static boolean modOn(File f) {
+        return !f.getName().endsWith(OFF);
+    }
+
+    public static String modName(File f) {
+        String n = f.getName();
+        return modOn(f) ? n : n.substring(0, n.length() - OFF.length());
+    }
+
+    public static boolean setModOn(File f, boolean on) {
+        if (modOn(f) == on) return true;
+        File to = new File(f.getParentFile(), on ? modName(f) : f.getName() + OFF);
+        return f.renameTo(to);
+    }
+
+    // Installs mods picked with the system file picker: .pk3 files as they are; from a .zip,
+    // the .pk3 files inside it, or, when it has none, the .zip itself as a .pk3 (a .pk3 is a
+    // .zip of game files). Returns the number of mods installed, or -1 with nothing usable.
+    public static int importMods(Context c, List<Uri> uris, int game) throws IOException {
+        File dir = modsDir(c, game);
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Can't create " + dir);
+        ContentResolver cr = c.getContentResolver();
+        int count = 0;
+        byte[] buf = new byte[1 << 20];
+        for (Uri u : uris) {
+            String name = displayName(cr, u);
+            String lower = name.toLowerCase();
+            if (lower.endsWith(".pk3")) {
+                try (InputStream in = cr.openInputStream(u)) {
+                    copy(in, new File(dir, name), buf);
+                }
+                count++;
+            } else if (lower.endsWith(".zip")) {
+                int inside = 0;
+                try (java.util.zip.ZipInputStream zin = new java.util.zip.ZipInputStream(cr.openInputStream(u))) {
+                    for (ZipEntry e; (e = zin.getNextEntry()) != null; ) {
+                        String en = e.getName();
+                        if (e.isDirectory() || !en.toLowerCase().endsWith(".pk3")) continue;
+                        String base = en.substring(en.lastIndexOf('/') + 1);
+                        copy(zin, new File(dir, base), buf);
+                        inside++;
+                    }
+                }
+                if (inside == 0) {
+                    try (InputStream in = cr.openInputStream(u)) {
+                        copy(in, new File(dir, name.substring(0, name.length() - 4) + ".pk3"), buf);
+                    }
+                    inside = 1;
+                }
+                count += inside;
+            }
+        }
+        return count == 0 ? -1 : count;
+    }
+
+    private static String displayName(ContentResolver cr, Uri u) {
+        try (Cursor cur = cr.query(u, new String[]{android.provider.OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cur != null && cur.moveToFirst() && !cur.isNull(0)) return cur.getString(0);
+        }
+        String p = u.getLastPathSegment();
+        return p != null ? p.substring(p.lastIndexOf('/') + 1) : "mod.pk3";
+    }
+
+    // Copies without closing the input (it may be a zip entry); writes through a .part file.
+    private static void copy(InputStream in, File to, byte[] buf) throws IOException {
+        File part = new File(to.getParentFile(), to.getName() + ".part");
+        try (OutputStream out = new FileOutputStream(part)) {
+            int n;
+            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+        }
+        if (to.exists() && !to.delete()) throw new IOException("Can't replace " + to);
+        if (!part.renameTo(to)) throw new IOException("Can't write " + to);
+    }
+
     // ---- Pictures --------------------------------------------------------------------------
 
     // A random mission briefing picture from the player's own Allied Assault files (main/

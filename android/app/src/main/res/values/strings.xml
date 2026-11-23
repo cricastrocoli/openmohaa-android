@@ -74,4 +74,19 @@
     <string name="files_done">Import finished.</string>
     <string name="files_none">No game files found in that folder. Pick the folder that holds “main”.</string>
     <string name="files_error">Import failed: %1$s</string>
+    <string name="mods">Mods</string>
+    <string name="mods_sub">Translations and add-ons</string>
+    <string name="mods_desc">Mods are .pk3 files (or a .zip holding them, or a .zip of game files) that change or add to the game: translations, textures, sounds, maps. They are loaded over the game\'s own files, in alphabetical order.</string>
+    <string name="mods_import">Import mods</string>
+    <string name="mods_none">No mods installed for this game.</string>
+    <string name="mods_note">Mods made by others may not work with OpenMoHAA. Mods that need Windows programs (.exe, .dll) can\'t be used.</string>
+    <string name="mods_remove_title">Remove mod</string>
+    <string name="mods_remove_message">Remove %1$s? It is deleted from the app.</string>
+    <string name="mods_remove">Remove</string>
+    <string name="mods_imported">%1$d mod(s) installed. They are used the next time the game starts.</string>
+    <string name="mods_none_imported">No .pk3 or .zip files were picked.</string>
+    <string name="mods_error">Something went wrong: %1$s</string>
+    <string name="hint_toggle">On / off</string>
+    <string name="hint_remove">Remove</string>
+    <string name="setting_game_desc">The campaign Play starts: Allied Assault, Spearhead or Breakthrough (if installed).</string>
 </resources>

@@ -66,4 +66,19 @@
     <string name="files_done">Importação concluída.</string>
     <string name="files_none">Nenhum arquivo do jogo nessa pasta. Escolha a pasta que contém a “main”.</string>
     <string name="files_error">A importação falhou: %1$s</string>
+    <string name="mods">Mods</string>
+    <string name="mods_sub">Traduções e extras</string>
+    <string name="mods_desc">Mods são arquivos .pk3 (ou um .zip com eles, ou um .zip de arquivos do jogo) que mudam ou acrescentam coisas ao jogo: traduções, texturas, sons, mapas. Eles são carregados por cima dos arquivos do jogo, em ordem alfabética.</string>
+    <string name="mods_import">Importar mods</string>
+    <string name="mods_none">Nenhum mod instalado para este jogo.</string>
+    <string name="mods_note">Mods feitos por terceiros podem não funcionar no OpenMoHAA. Mods que dependem de programas do Windows (.exe, .dll) não podem ser usados.</string>
+    <string name="mods_remove_title">Remover mod</string>
+    <string name="mods_remove_message">Remover %1$s? Ele será apagado do app.</string>
+    <string name="mods_remove">Remover</string>
+    <string name="mods_imported">%1$d mod(s) instalado(s). Eles valem a partir da próxima vez que o jogo abrir.</string>
+    <string name="mods_none_imported">Nenhum arquivo .pk3 ou .zip foi escolhido.</string>
+    <string name="mods_error">Algo deu errado: %1$s</string>
+    <string name="hint_toggle">Ligar / desligar</string>
+    <string name="hint_remove">Remover</string>
+    <string name="setting_game_desc">A campanha que o Jogar inicia: Allied Assault, Spearhead ou Breakthrough (se instalados).</string>
 </resources>
