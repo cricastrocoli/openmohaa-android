@@ -32,6 +32,10 @@ android {
             version '3.31.6'
         }
     }
+    packaging {
+        // Libraries are unpacked on install: innoextract (libinnoextract.so) runs as a program.
+        jniLibs { useLegacyPackaging = true }
+    }
     lint {
         abortOnError = false
     }

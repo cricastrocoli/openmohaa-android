@@ -97,7 +97,19 @@ public final class GameData {
                     }
                 }
             }
-            if (sources.isEmpty()) return new ImportResult(0, "nofiles");
+            if (sources.isEmpty()) {
+                // The folder the GOG.com installer was downloaded to: install from it.
+                List<Uri> uris = new ArrayList<>();
+                List<String> names = new ArrayList<>();
+                for (Doc d : top) {
+                    String n = d.name.toLowerCase();
+                    if (d.dir || !(n.endsWith(".exe") || n.endsWith(".bin"))) continue;
+                    uris.add(DocumentsContract.buildDocumentUriUsingTree(tree, d.id));
+                    names.add(d.name);
+                }
+                if (GogInstaller.isInstaller(names)) return GogInstaller.install(c, uris, names, progress);
+                return new ImportResult(0, "nofiles");
+            }
 
             long total = 0;
             for (Doc[] s : sources) total += treeSize(cr, tree, s[0].id);
@@ -110,10 +122,15 @@ public final class GameData {
         }
     }
 
-    // Imports the game from a file picked with the system picker: a .zip of the game's folder.
-    public static ImportResult importFile(Context c, Uri file, Progress progress) {
-        String name = displayName(c.getContentResolver(), file).toLowerCase();
-        if (name.endsWith(".zip")) return importZip(c, file, progress);
+    // Imports the game from files picked with the system picker: its GOG.com installer (the
+    // .exe and its .bin parts), or a .zip of the game's folder.
+    public static ImportResult importFiles(Context c, List<Uri> files, Progress progress) {
+        List<String> names = new ArrayList<>();
+        for (Uri u : files) names.add(displayName(c.getContentResolver(), u));
+        if (GogInstaller.isInstaller(names)) return GogInstaller.install(c, files, names, progress);
+        for (int i = 0; i < files.size(); i++) {
+            if (names.get(i).toLowerCase().endsWith(".zip")) return importZip(c, files.get(i), progress);
+        }
         return new ImportResult(0, "unsupported");
     }
 

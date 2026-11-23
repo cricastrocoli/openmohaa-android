@@ -10,11 +10,11 @@
     <string name="status_missing">Game files missing</string>
     <string name="home_ready">Ready for battle</string>
     <string name="home_missing">Import your game files</string>
-    <string name="home_missing_sub">You need your own copy of Medal of Honor: Allied Assault. Copy its installation folder to a folder on this device (for example Download/MOHAA) and pick it.</string>
+    <string name="home_missing_sub">You need your own copy of Medal of Honor: Allied Assault. Download its Windows installer from GOG (the .exe and the .bin files) and import it here: the app extracts the game by itself.</string>
     <string name="play">Play</string>
     <string name="play_sub">Start %1$s</string>
     <string name="import_files">Import game files</string>
-    <string name="import_sub">Pick the game\'s folder</string>
+    <string name="import_sub">GOG installer, folder or .zip</string>
     <string name="settings">Settings</string>
     <string name="settings_sub">Resolution, frame rate, aim</string>
     <string name="controls">Controls</string>
@@ -64,7 +64,7 @@
     <string name="act_leanright">Lean right</string>
     <string name="act_menu">Game menu</string>
     <string name="act_objectives">Objectives / scores</string>
-    <string name="files_desc">The app needs the data folders of your copy of the game (main, plus mainta / maintt for the expansions). Copy the game\'s install folder to this device, into a subfolder (for example Download/MOHAA: Android doesn\'t let apps use the root of Download or of the storage), or a .zip of it, and choose it here. Only the data folders are copied.</string>
+    <string name="files_desc">The app needs the files of your copy of the game. The simplest way: download the game\'s Windows installer from GOG (the setup_….exe and the .bin files that come with it), choose “Import from files” and select all of them: the app extracts the game right here. You can also import the folder of the installed game (or a .zip of it). Only the data folders are copied.</string>
     <string name="files_installed">Installed</string>
     <string name="files_not_installed">Not installed</string>
     <string name="files_storage">Space used: %1$s</string>
@@ -97,7 +97,10 @@
     <string name="campaign">Campaign</string>
     <string name="campaign_missing">%1$s · not installed</string>
     <string name="hint_campaign">Campaign</string>
-    <string name="files_import_zip">Import from a file (.zip)</string>
+    <string name="files_import_zip">Import from files (GOG installer or .zip)</string>
     <string name="files_none_file">No game files in that file. It must hold the game\'s folder, or its “main” folder.</string>
-    <string name="files_unsupported">That kind of file can\'t be imported. Choose a .zip of the game\'s folder.</string>
+    <string name="files_unsupported">That kind of file can\'t be imported. Choose the GOG installer (its .exe and .bin files) or a .zip of the game\'s folder.</string>
+    <string name="files_gog_noexe">Choose the installer\'s .exe file too, along with the .bin files.</string>
+    <string name="files_gog_missing">Parts of the installer are missing. Choose the .exe and all the .bin files that came with it (for example setup_…-1.bin and setup_…-2.bin).</string>
+    <string name="files_nospace">Not enough free space: %1$s are needed.</string>
 </resources>

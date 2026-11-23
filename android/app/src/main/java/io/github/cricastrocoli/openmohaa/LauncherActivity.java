@@ -218,7 +218,7 @@ public class LauncherActivity extends Activity {
         View main = card(getString(ready ? R.string.play : R.string.import_files),
                 ready ? getString(R.string.play_sub, gameName(prefs.game())) : getString(R.string.import_sub),
                 ready ? "▶" : "⤓", true, v -> {
-                    if (GameData.installed(this)[0]) play(); else pickImportFolder();
+                    if (GameData.installed(this)[0]) play(); else showPage(Page.FILES);
                 });
         grid.addView(main, weighted(dp(210), 1.05f, 0, dp(14)));
 
@@ -512,19 +512,20 @@ public class LauncherActivity extends Activity {
         storage.setPadding(dp(18), dp(4), 0, dp(12));
         list.addView(storage);
 
-        LinearLayout importRow = row();
-        importRow.setPadding(dp(18), dp(14), dp(18), dp(14));
-        TextView il = text("⤓  " + getString(R.string.files_import), 17, GOLD, true);
-        importRow.addView(il);
-        focusable(importRow, new TextView[]{il}, v -> { if (!importing) pickImportFolder(); });
-        list.addView(importRow, listItem());
-
+        // From files first: the GOG installer, the simplest way.
         LinearLayout fileRow = row();
         fileRow.setPadding(dp(18), dp(14), dp(18), dp(14));
         TextView fl = text("⤓  " + getString(R.string.files_import_zip), 17, GOLD, true);
         fileRow.addView(fl);
         focusable(fileRow, new TextView[]{fl}, v -> { if (!importing) pickImportFile(); });
         list.addView(fileRow, listItem());
+
+        LinearLayout importRow = row();
+        importRow.setPadding(dp(18), dp(14), dp(18), dp(14));
+        TextView il = text("⤓  " + getString(R.string.files_import), 17, GOLD, true);
+        importRow.addView(il);
+        focusable(importRow, new TextView[]{il}, v -> { if (!importing) pickImportFolder(); });
+        list.addView(importRow, listItem());
 
         importBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         importBar.setMax(1000);
@@ -533,8 +534,8 @@ public class LauncherActivity extends Activity {
         importText = text("", 14, INK_DIM, false);
         importText.setPadding(dp(4), dp(6), 0, 0);
         list.addView(importText);
-        defaultFocus = importRow;
-        importRow.requestFocus();
+        defaultFocus = fileRow;
+        fileRow.requestFocus();
         return scroll(list);
     }
 
@@ -547,6 +548,7 @@ public class LauncherActivity extends Activity {
         Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
         i.setType("*/*");
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);  // an installer's .exe and .bin parts
         startActivityForResult(i, REQ_IMPORT_FILE);
     }
 
@@ -558,10 +560,18 @@ public class LauncherActivity extends Activity {
             return;
         }
         if ((requestCode != REQ_IMPORT && requestCode != REQ_IMPORT_FILE) || resultCode != RESULT_OK
-                || data == null || data.getData() == null) return;
-        Uri picked = data.getData();
+                || data == null) return;
+        java.util.List<Uri> picked = new java.util.ArrayList<>();
+        if (data.getClipData() != null) {
+            for (int i = 0; i < data.getClipData().getItemCount(); i++) picked.add(data.getClipData().getItemAt(i).getUri());
+        } else if (data.getData() != null) {
+            picked.add(data.getData());
+        }
+        if (picked.isEmpty()) return;
         boolean fromFile = requestCode == REQ_IMPORT_FILE;
         importing = true;
+        // An import can take a few minutes: the screen stays on meanwhile.
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         showPage(Page.FILES);
         importBar.setVisibility(View.VISIBLE);
         new Thread(() -> {
@@ -570,14 +580,19 @@ public class LauncherActivity extends Activity {
                 if (importBar != null) importBar.setProgress(total > 0 ? (int) (done * 1000 / total) : 0);
                 if (importText != null) importText.setText(getString(R.string.files_importing, pct) + "\n" + file);
             });
-            GameData.ImportResult r = fromFile ? GameData.importFile(this, picked, progress)
-                    : GameData.importFrom(this, picked, progress);
+            GameData.ImportResult r = fromFile ? GameData.importFiles(this, picked, progress)
+                    : GameData.importFrom(this, picked.get(0), progress);
             ui.post(() -> {
                 importing = false;
+                getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 showPage(Page.FILES);
                 importText.setText(r.error == null ? getString(R.string.files_done)
                         : r.error.equals("nofiles") ? getString(fromFile ? R.string.files_none_file : R.string.files_none)
                         : r.error.equals("unsupported") ? getString(R.string.files_unsupported)
+                        : r.error.equals("noexe") ? getString(R.string.files_gog_noexe)
+                        : r.error.startsWith("missing:") ? getString(R.string.files_gog_missing)
+                        : r.error.startsWith("nospace:") ? getString(R.string.files_nospace,
+                                Formatter.formatFileSize(this, Long.parseLong(r.error.substring(8))))
                         : getString(R.string.files_error, r.error));
                 loadBackground();
             });

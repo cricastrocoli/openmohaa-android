@@ -8,11 +8,11 @@
     <string name="status_missing">Arquivos do jogo ausentes</string>
     <string name="home_ready">Pronto para a batalha</string>
     <string name="home_missing">Importe os arquivos do jogo</string>
-    <string name="home_missing_sub">É preciso ter a sua cópia de Medal of Honor: Allied Assault. Copie a pasta de instalação dele para uma pasta do aparelho (por exemplo Download/MOHAA) e escolha-a.</string>
+    <string name="home_missing_sub">É preciso ter a sua cópia de Medal of Honor: Allied Assault. Baixe o instalador para Windows na GOG (o .exe e os arquivos .bin) e importe-o aqui: o app extrai o jogo sozinho.</string>
     <string name="play">Jogar</string>
     <string name="play_sub">Iniciar %1$s</string>
     <string name="import_files">Importar arquivos do jogo</string>
-    <string name="import_sub">Escolher a pasta do jogo</string>
+    <string name="import_sub">Instalador da GOG, pasta ou .zip</string>
     <string name="settings">Configurações</string>
     <string name="settings_sub">Resolução, quadros, mira</string>
     <string name="controls">Controles</string>
@@ -57,7 +57,7 @@
     <string name="act_leanright">Inclinar à direita</string>
     <string name="act_menu">Menu do jogo</string>
     <string name="act_objectives">Objetivos / placar</string>
-    <string name="files_desc">O app precisa das pastas de dados da sua cópia do jogo (main, e mainta / maintt para as expansões). Copie a pasta de instalação do jogo para este aparelho, numa subpasta (por exemplo Download/MOHAA: o Android não deixa apps usarem a raiz de Download nem do armazenamento), ou um .zip dela, e escolha aqui. Só as pastas de dados são copiadas.</string>
+    <string name="files_desc">O app precisa dos arquivos da sua cópia do jogo. A forma mais simples: baixe o instalador para Windows do jogo no site da GOG (o setup_….exe e os arquivos .bin que vêm com ele), escolha “Importar de arquivos” e selecione todos eles: o app extrai o jogo aqui mesmo. Também dá para importar a pasta do jogo já instalado (ou um .zip dela). Só as pastas de dados são copiadas.</string>
     <string name="files_installed">Instalado</string>
     <string name="files_not_installed">Não instalado</string>
     <string name="files_storage">Espaço usado: %1$s</string>
@@ -86,7 +86,10 @@
     <string name="campaign">Campanha</string>
     <string name="campaign_missing">%1$s · não instalado</string>
     <string name="hint_campaign">Campanha</string>
-    <string name="files_import_zip">Importar de um arquivo (.zip)</string>
+    <string name="files_import_zip">Importar de arquivos (instalador da GOG ou .zip)</string>
     <string name="files_none_file">Nenhum arquivo do jogo nesse arquivo. Ele precisa conter a pasta do jogo, ou a pasta “main”.</string>
-    <string name="files_unsupported">Esse tipo de arquivo não pode ser importado. Escolha um .zip da pasta do jogo.</string>
+    <string name="files_unsupported">Esse tipo de arquivo não pode ser importado. Escolha o instalador da GOG (o .exe e os arquivos .bin dele) ou um .zip da pasta do jogo.</string>
+    <string name="files_gog_noexe">Escolha também o arquivo .exe do instalador, junto com os arquivos .bin.</string>
+    <string name="files_gog_missing">Faltam partes do instalador. Escolha o .exe e todos os arquivos .bin que vieram com ele (por exemplo setup_…-1.bin e setup_…-2.bin).</string>
+    <string name="files_nospace">Não há espaço livre suficiente: são necessários %1$s.</string>
 </resources>

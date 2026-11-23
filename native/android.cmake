@@ -50,3 +50,10 @@ function(mohaa_android_finish)
   add_dependencies(openmohaa OpenAL)
 endfunction()
 cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} CALL mohaa_android_finish)
+
+# The launcher's GOG installer import: runs innoextract (a prebuilt program, see
+# native/build-innoextract.sh) with the installer's files handed to it.
+add_library(gogexec SHARED ${NATIVE_DIR}/gog_exec.c)
+target_link_libraries(gogexec PRIVATE log)
+set_target_properties(gogexec PROPERTIES PREFIX "lib")  # OpenMoHAA drops the prefix; Android needs it
+
