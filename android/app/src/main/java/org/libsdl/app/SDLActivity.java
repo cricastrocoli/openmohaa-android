@@ -1335,6 +1335,19 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         // Furthermore, it's possible a game controller has SOURCE_KEYBOARD and
         // SOURCE_JOYSTICK, while its key events arrive from the keyboard source
         // So, retrieve the device itself and check all of its sources
+        // Medal of Honor (RP6): a handheld's Back button arrives from its built-in controller,
+        // and SDL would turn it into the controller's Back (Select) button. Here it stays the
+        // Android Back key (SDLK_AC_BACK), which the game takes as Esc: the menu.
+        if (keyCode == KeyEvent.KEYCODE_BACK
+                && SDLControllerManager.isDeviceSDLJoystick(deviceId)) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                onNativeKeyDown(keyCode);
+            } else if (event.getAction() == KeyEvent.ACTION_UP) {
+                onNativeKeyUp(keyCode);
+            }
+            return true;
+        }
+
         if (SDLControllerManager.isDeviceSDLJoystick(deviceId)) {
             // Note that we process events with specific key codes here
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
