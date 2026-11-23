@@ -39,8 +39,6 @@ static void findNativeLibsPath(void) {
 }
 
 int SDL_main(int argc, char** argv) {
-  (void) argc;
-  (void) argv;
   findNativeLibsPath();
   // Android's Back button reaches the game (as Esc, the menu) instead of closing the app.
   SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
@@ -69,15 +67,27 @@ int SDL_main(int argc, char** argv) {
   LOG("libs %s, game %s, home %s, screen %dx%d", nativeLibsPath, basePath, homePath,
       mobile_screen_width, mobile_screen_height);
 
-  char* args[] = {
+  // Our defaults first; the launcher's arguments (resolution, frame rate, game, buttons...)
+  // come after, so they win.
+  static char* args[96];
+  int count = 0;
+  char* defaults[] = {
     "openmohaa",
     "+set", "fs_basepath", basePath,
     "+set", "fs_homepath", homePath,
     "+set", "r_fullscreen", "1",
     "+set", "r_mode", "-2",
     "+set", "in_joystick", "0",  // the controller is handled in android_input.cpp
-    NULL,
   };
-  int count = (int) (sizeof(args) / sizeof(args[0])) - 1;
+  for(size_t i = 0; i < sizeof(defaults) / sizeof(defaults[0]); i++) args[count++] = defaults[i];
+  // SDL's argv[0] is a placeholder; the rest are from GameActivity.getArguments().
+  for(int i = 1; i < argc && count < (int) (sizeof(args) / sizeof(args[0])) - 1; i++) {
+    args[count++] = argv[i];
+    // A chosen render size: the screen size the renderer clips to follows it.
+    if(i >= 2 && !strcmp(argv[i - 2], "+set") && !strcmp(argv[i - 1], "r_customwidth")) mobile_screen_width = atoi(argv[i]);
+    if(i >= 2 && !strcmp(argv[i - 2], "+set") && !strcmp(argv[i - 1], "r_customheight")) mobile_screen_height = atoi(argv[i]);
+    LOG("arg %s", argv[i]);
+  }
+  args[count] = NULL;
   return main_android(count, args);
 }

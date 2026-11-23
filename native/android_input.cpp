@@ -7,7 +7,9 @@
 // sticks move the pointer, A clicks and B goes back.
 //
 // Tunable with rp_* cvars (saved in the config):
+//   rp_aim_scale                overall aim speed, set by the launcher (1.0)
 //   rp_aim_yaw / rp_aim_pitch   turn rate at full deflection, degrees/second (200 / 140)
+//   rp_map                      buttons for the actions, set by the launcher ("jump=A,...")
 //   rp_aim_deadzone             inner dead zone, fraction of the stick's travel (0.12)
 //   rp_aim_outer                where full deflection starts (0.94)
 //   rp_aim_curve                response exponent: 1 linear, higher = finer near centre (2.0)
@@ -20,16 +22,26 @@
 
 #include "client.h"
 
+#include <string.h>
+
 #include <math.h>
 #include "SDL.h"
 
 static SDL_GameController* pad;
+static cvar_t* buttonMap;
+static void loadButtonMap(void);
 
-static cvar_t *aimYaw, *aimPitch, *aimDead, *aimOuter, *aimCurve, *rampDelay, *rampTime, *rampBoost,
+static cvar_t *aimScale, *aimYaw, *aimPitch, *aimDead, *aimOuter, *aimCurve, *rampDelay, *rampTime, *rampBoost,
               *aimInvert, *moveDead, *cursorSpeed;
 
 static void registerCvars(void) {
-    if (aimYaw) return;
+    if (aimYaw) {
+        if (buttonMap->modified) loadButtonMap();
+        return;
+    }
+    buttonMap   = Cvar_Get("rp_map", "", CVAR_ARCHIVE);
+    loadButtonMap();
+    aimScale    = Cvar_Get("rp_aim_scale", "1.0", CVAR_ARCHIVE);
     aimYaw      = Cvar_Get("rp_aim_yaw", "200", CVAR_ARCHIVE);
     aimPitch    = Cvar_Get("rp_aim_pitch", "140", CVAR_ARCHIVE);
     aimDead     = Cvar_Get("rp_aim_deadzone", "0.12", CVAR_ARCHIVE);
@@ -84,38 +96,65 @@ static bool inMenu(void) {
 
 enum { B_A, B_B, B_X, B_Y, B_LB, B_RB, B_LT, B_RT, B_L3, B_R3, B_UP, B_DOWN, B_LEFT, B_RIGHT,
        B_START, B_BACK, B_COUNT };
+static const char* buttonNames[B_COUNT] = {"A", "B", "X", "Y", "LB", "RB", "LT", "RT", "L3", "R3",
+                                           "UP", "DOWN", "LEFT", "RIGHT", "START", "BACK"};
 
 typedef struct {
+    const char* name;   // as in rp_map
+    int button;         // default button
     const char* hold;   // "+cmd": sent as +cmd on press and -cmd on release
     const char* press;  // a command sent once on press
     const char* toggle; // "+cmd": one click turns it on (+cmd), the next turns it off (-cmd)
 } Action;
 
-// In-game layout (Xbox naming, as the Retroid Pocket 6 reports its buttons). Handhelds are
-// awkward to hold buttons down on, so crouch and walk are toggles.
-static const Action gameActions[B_COUNT] = {
-    /* A     */ {"+moveup", NULL, NULL},          // jump
-    /* B     */ {"+use", NULL, NULL},             // use: doors, mounted guns
-    /* X     */ {NULL, "reload", NULL},
-    /* Y     */ {NULL, "toggleitem", NULL},       // binoculars / items
-    /* LB    */ {NULL, "weapprev", NULL},
-    /* RB    */ {NULL, "weapnext", NULL},
-    /* LT    */ {"+attacksecondary", NULL, NULL},
-    /* RT    */ {"+attackprimary", NULL, NULL},
-    /* L3    */ {NULL, NULL, "+movedown"},        // crouch: click on, click off
-    /* R3    */ {NULL, NULL, "+speed"},           // walk: click on, click off
-    /* UP    */ {NULL, "useweaponclass grenade", NULL},
-    /* DOWN  */ {NULL, "holster", NULL},
-    /* LEFT  */ {"+leanleft", NULL, NULL},
-    /* RIGHT */ {"+leanright", NULL, NULL},
-    /* START */ {NULL, NULL, NULL},               // the menu (sent as Esc)
-    /* BACK  */ {"+scores", NULL, NULL},          // objectives / scores while held
+// The game's actions and their default buttons (Xbox naming, as the Retroid Pocket 6 reports
+// its buttons). Handhelds are awkward to hold buttons down on, so crouch and walk are toggles.
+// The launcher can move them to other buttons with rp_map ("jump=A,use=B,...").
+enum { A_MENU = 14, A_OBJECTIVES = 15, A_PREVWEAPON = 4, A_NEXTWEAPON = 5, A_COUNT = 16 };
+static const Action actions[A_COUNT] = {
+    {"jump",       B_A,     "+moveup", NULL, NULL},
+    {"use",        B_B,     "+use", NULL, NULL},           // doors, mounted guns
+    {"reload",     B_X,     NULL, "reload", NULL},
+    {"item",       B_Y,     NULL, "toggleitem", NULL},     // binoculars / items
+    {"prevweapon", B_LB,    NULL, "weapprev", NULL},
+    {"nextweapon", B_RB,    NULL, "weapnext", NULL},
+    {"altfire",    B_LT,    "+attacksecondary", NULL, NULL},
+    {"fire",       B_RT,    "+attackprimary", NULL, NULL},
+    {"crouch",     B_L3,    NULL, NULL, "+movedown"},      // click on, click off
+    {"walk",       B_R3,    NULL, NULL, "+speed"},         // click on, click off
+    {"grenade",    B_UP,    NULL, "useweaponclass grenade", NULL},
+    {"holster",    B_DOWN,  NULL, "holster", NULL},
+    {"leanleft",   B_LEFT,  "+leanleft", NULL, NULL},
+    {"leanright",  B_RIGHT, "+leanright", NULL, NULL},
+    {"menu",       B_START, NULL, NULL, NULL},             // sent as Esc
+    {"objectives", B_BACK,  "+scores", NULL, NULL},        // objectives / scores while held
 };
 
-static bool toggled[B_COUNT];  // a toggle is on
+static int buttonAction[B_COUNT];  // the action on each button (-1: none)
+static int actionButton[A_COUNT];
 
+// rp_map: "action=BUTTON" pairs separated by commas; actions not named keep their default.
+static void loadButtonMap(void) {
+    for (int i = 0; i < A_COUNT; i++) actionButton[i] = actions[i].button;
+    char map[MAX_STRING_CHARS];
+    Q_strncpyz(map, buttonMap ? buttonMap->string : "", sizeof(map));
+    for (char* pair = strtok(map, ","); pair; pair = strtok(NULL, ",")) {
+        char* eq = strchr(pair, '=');
+        if (!eq) continue;
+        *eq = 0;
+        for (int i = 0; i < A_COUNT; i++) {
+            if (Q_stricmp(pair, actions[i].name)) continue;
+            for (int b = 0; b < B_COUNT; b++) if (!Q_stricmp(eq + 1, buttonNames[b])) actionButton[i] = b;
+        }
+    }
+    for (int b = 0; b < B_COUNT; b++) buttonAction[b] = -1;
+    for (int i = 0; i < A_COUNT; i++) buttonAction[actionButton[i]] = i;  // a later action wins
+    if (buttonMap) buttonMap->modified = qfalse;
+}
+
+static bool toggled[A_COUNT];  // a toggle action is on
 static bool down[B_COUNT];
-static bool held[B_COUNT];  // a game "+cmd" is active for this button
+static bool held[A_COUNT];     // an action's "+cmd" is active
 
 static bool readButton(int b) {
     switch (b) {
@@ -141,17 +180,17 @@ static bool readButton(int b) {
 }
 
 static void releaseHeld(void) {
-    for (int b = 0; b < B_COUNT; b++) {
-        if (!held[b]) continue;
-        Cbuf_AddText(va("-%s\n", gameActions[b].hold + 1));
-        held[b] = false;
+    for (int i = 0; i < A_COUNT; i++) {
+        if (!held[i]) continue;
+        Cbuf_AddText(va("-%s\n", actions[i].hold + 1));
+        held[i] = false;
     }
 }
 
 // Toggles (crouch, walk) stay on through menus: the game gets them back on returning.
 static void sendToggles(bool on) {
-    for (int b = 0; b < B_COUNT; b++) {
-        if (toggled[b]) Cbuf_AddText(va("%s%s\n", on ? "+" : "-", gameActions[b].toggle + 1));
+    for (int i = 0; i < A_COUNT; i++) {
+        if (toggled[i]) Cbuf_AddText(va("%s%s\n", on ? "+" : "-", actions[i].toggle + 1));
     }
 }
 
@@ -168,7 +207,10 @@ static void escape(bool isDown) {
 }
 
 static void buttonChanged(int b, bool isDown, bool menu) {
+    int act = buttonAction[b];
     if (menu) {
+        // Menus: A clicks, B and Start (or the menu button) go back, the D-pad is the arrows.
+        if (act == A_MENU) { escape(isDown); return; }
         switch (b) {
             case B_A: menuKey(K_MOUSE1, isDown); break;
             case B_B: case B_START: escape(isDown); break;
@@ -180,26 +222,27 @@ static void buttonChanged(int b, bool isDown, bool menu) {
         }
         return;
     }
-    if (b == B_START) {
+    if (act < 0) return;
+    if (act == A_MENU) {
         // The game's menu opens with Esc (its key handler), not with a console command.
         escape(isDown);
         return;
     }
-    // Select + LB / RB: quick save / quick load (single player).
-    if (isDown && down[B_BACK] && (b == B_LB || b == B_RB)) {
-        if (held[B_BACK]) { Cbuf_AddText("-scores\n"); held[B_BACK] = false; }
-        Cbuf_AddText(b == B_LB ? "savegame quick\n" : "loadgame quick\n");
+    // Objectives button + previous / next weapon: quick save / quick load (single player).
+    if (isDown && down[actionButton[A_OBJECTIVES]] && (act == A_PREVWEAPON || act == A_NEXTWEAPON)) {
+        if (held[A_OBJECTIVES]) { Cbuf_AddText("-scores\n"); held[A_OBJECTIVES] = false; }
+        Cbuf_AddText(act == A_PREVWEAPON ? "savegame quick\n" : "loadgame quick\n");
         return;
     }
-    const Action* a = &gameActions[b];
+    const Action* a = &actions[act];
     if (a->hold) {
-        if (isDown && !held[b]) { Cbuf_AddText(va("%s\n", a->hold)); held[b] = true; }
-        else if (!isDown && held[b]) { Cbuf_AddText(va("-%s\n", a->hold + 1)); held[b] = false; }
+        if (isDown && !held[act]) { Cbuf_AddText(va("%s\n", a->hold)); held[act] = true; }
+        else if (!isDown && held[act]) { Cbuf_AddText(va("-%s\n", a->hold + 1)); held[act] = false; }
     } else if (a->press && isDown) {
         Cbuf_AddText(va("%s\n", a->press));
     } else if (a->toggle && isDown) {
-        toggled[b] = !toggled[b];
-        Cbuf_AddText(va("%s%s\n", toggled[b] ? "+" : "-", a->toggle + 1));
+        toggled[act] = !toggled[act];
+        Cbuf_AddText(va("%s%s\n", toggled[act] ? "+" : "-", a->toggle + 1));
     }
 }
 
@@ -294,8 +337,8 @@ extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
     float zoom = 1.0f;
     if (cge && cge->CG_SensitivityScale() >= 0.0f) zoom = cge->CG_SensitivityScale();
 
-    float yawRate = aimYaw->value * curved * (1.0f + boost) * zoom;
-    float pitchRate = aimPitch->value * curved * zoom;
+    float yawRate = aimYaw->value * aimScale->value * curved * (1.0f + boost) * zoom;
+    float pitchRate = aimPitch->value * aimScale->value * curved * zoom;
     cl.viewangles[YAW] -= dx * yawRate * dt;
     cl.viewangles[PITCH] += (aimInvert->integer ? -dy : dy) * pitchRate * dt;
 }

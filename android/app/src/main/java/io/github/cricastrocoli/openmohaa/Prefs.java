@@ -1,0 +1,105 @@
+package io.github.cricastrocoli.openmohaa;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import java.util.ArrayList;
+import java.util.List;
+
+// The launcher's settings, kept in SharedPreferences, and the engine arguments they become.
+public final class Prefs {
+    // Render sizes: 0 = the screen's own (native). Others are 16:9.
+    public static final int[][] RESOLUTIONS = {{0, 0}, {1600, 900}, {1280, 720}, {960, 540}};
+    // Frame rate caps: 0 = unlimited.
+    public static final int[] FRAME_RATES = {30, 60, 90, 120, 0};
+    public static final int[] AIM_SPEEDS = {50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150};
+
+    // The game's actions, in the order the Controls page lists them, with their default buttons
+    // (the names android_input.cpp understands in rp_map).
+    public static final String[] ACTIONS = {"fire", "altfire", "jump", "use", "reload", "item",
+            "prevweapon", "nextweapon", "crouch", "walk", "grenade", "holster", "leanleft",
+            "leanright", "menu", "objectives"};
+    public static final String[] DEFAULT_BUTTONS = {"RT", "LT", "A", "B", "X", "Y",
+            "LB", "RB", "L3", "R3", "UP", "DOWN", "LEFT", "RIGHT", "START", "BACK"};
+
+    private final SharedPreferences p;
+
+    public Prefs(Context c) {
+        p = c.getSharedPreferences("launcher", Context.MODE_PRIVATE);
+    }
+
+    public int resolution() { return clamp(p.getInt("resolution", 0), RESOLUTIONS.length); }
+    public void setResolution(int i) { p.edit().putInt("resolution", i).apply(); }
+
+    public int frameRate() { return clamp(p.getInt("frameRate", 3), FRAME_RATES.length); }  // 120
+    public void setFrameRate(int i) { p.edit().putInt("frameRate", i).apply(); }
+
+    public int aimSpeed() { return clamp(p.getInt("aimSpeed", 5), AIM_SPEEDS.length); }     // 100%
+    public void setAimSpeed(int i) { p.edit().putInt("aimSpeed", i).apply(); }
+
+    public boolean invertAim() { return p.getBoolean("invertAim", false); }
+    public void setInvertAim(boolean b) { p.edit().putBoolean("invertAim", b).apply(); }
+
+    // 0 Allied Assault, 1 Spearhead, 2 Breakthrough.
+    public int game() { return clamp(p.getInt("game", 0), 3); }
+    public void setGame(int g) { p.edit().putInt("game", g).apply(); }
+
+    public String button(int action) {
+        return p.getString("btn_" + ACTIONS[action], DEFAULT_BUTTONS[action]);
+    }
+
+    // Puts a button on an action; the action that had it takes this one's old button (a swap),
+    // so every action keeps a button.
+    public void setButton(int action, String button) {
+        String old = button(action);
+        SharedPreferences.Editor e = p.edit();
+        for (int i = 0; i < ACTIONS.length; i++) {
+            if (i != action && button(i).equals(button)) e.putString("btn_" + ACTIONS[i], old);
+        }
+        e.putString("btn_" + ACTIONS[action], button).apply();
+    }
+
+    public void resetButtons() {
+        SharedPreferences.Editor e = p.edit();
+        for (String a : ACTIONS) e.remove("btn_" + a);
+        e.apply();
+    }
+
+    // The render size for a resolution choice: the screen's own for "native".
+    public static int[] size(int choice, int screenW, int screenH) {
+        int[] r = RESOLUTIONS[choice];
+        return r[0] == 0 ? new int[]{screenW, screenH} : r;
+    }
+
+    // Engine arguments ("+set name value" ...).
+    public String[] gameArguments() {
+        List<String> a = new ArrayList<>();
+        int[] r = RESOLUTIONS[resolution()];
+        if (r[0] != 0) {
+            set(a, "r_mode", "-1");
+            set(a, "r_customwidth", Integer.toString(r[0]));
+            set(a, "r_customheight", Integer.toString(r[1]));
+        }
+        set(a, "com_maxfps", Integer.toString(FRAME_RATES[frameRate()]));
+        set(a, "com_target_game", Integer.toString(game()));
+        set(a, "rp_aim_scale", Float.toString(AIM_SPEEDS[aimSpeed()] / 100f));
+        set(a, "rp_aim_invert", invertAim() ? "1" : "0");
+        StringBuilder map = new StringBuilder();
+        for (int i = 0; i < ACTIONS.length; i++) {
+            if (i > 0) map.append(',');
+            map.append(ACTIONS[i]).append('=').append(button(i));
+        }
+        set(a, "rp_map", map.toString());
+        return a.toArray(new String[0]);
+    }
+
+    private static void set(List<String> a, String name, String value) {
+        a.add("+set");
+        a.add(name);
+        a.add(value);
+    }
+
+    private static int clamp(int v, int n) {
+        return v < 0 || v >= n ? 0 : v;
+    }
+}

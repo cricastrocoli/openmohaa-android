@@ -18,13 +18,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.libsdl.app.R;
-import org.libsdl.app.SDLActivity;
 
 // The opening screen: credits for the port and the free software it is built on, and the
-// trademark notice. Any button or a tap continues; it also moves on by itself. Shown once
-// per launch: coming back to a running game goes straight to it.
+// trademark notice, shown when the launcher's Play starts the game. Any button or a tap
+// continues; it also moves on by itself. The launcher's settings go on to the game.
 public class CreditsActivity extends Activity {
-    private static boolean shown;
     private static final long AUTO_CONTINUE_MS = 15000;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -33,12 +31,6 @@ public class CreditsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (shown) {
-            startGame();
-            return;
-        }
-        shown = true;
-
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
         column.setGravity(Gravity.CENTER);
@@ -104,7 +96,9 @@ public class CreditsActivity extends Activity {
         if (done) return;
         done = true;
         handler.removeCallbacksAndMessages(null);
-        startActivity(new Intent(this, SDLActivity.class));
+        Intent game = new Intent(this, GameActivity.class);
+        if (getIntent().getExtras() != null) game.putExtras(getIntent().getExtras());
+        startActivity(game);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         finish();
     }
