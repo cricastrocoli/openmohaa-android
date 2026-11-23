@@ -1,0 +1,7 @@
+<resources>
+    <string name="credits_port">Port para Android por cricastrocoli, desenvolvido com auxílio de IA generativa: Claude (Anthropic) no desenvolvimento e DeepSeek na revisão do planejamento.</string>
+    <string name="credits_built_on_title">Feito com software livre</string>
+    <string name="credits_built_on">OpenMoHAA, da equipe OpenMoHAA (GPL-2.0)\nAdaptações do motor para Android por emileb (GPL-2.0)\nioquake3 e o motor de Quake III Arena, da id Software (GPL-2.0)\nSDL2 (zlib) · OpenAL Soft (LGPL) · gl4es, de ptitSeb (MIT)\nzlib · libjpeg (Independent JPEG Group) · libogg e libvorbis (Xiph.Org) · libmad · Recast Navigation</string>
+    <string name="credits_notice">Sem afiliação nem endosso da Electronic Arts. Medal of Honor é marca registrada da Electronic Arts Inc. É necessário ter os arquivos originais do jogo.\nSoftware livre sob a GNU GPL 2.0: código-fonte em github.com/cricastrocoli/openmohaa-android</string>
+    <string name="credits_continue">Pressione qualquer botão para continuar</string>
+</resources>

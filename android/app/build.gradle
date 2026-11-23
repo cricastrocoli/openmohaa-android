@@ -2,13 +2,13 @@ plugins {
     id 'com.android.application'
 }
 
-// Medal of Honor: Allied Assault on OpenMoHAA, for arm64 handhelds (Retroid Pocket 6).
+// OpenMoHAA Android: OpenMoHAA (Medal of Honor: Allied Assault engine) for arm64 handhelds.
 android {
     namespace = "org.libsdl.app"
     compileSdkVersion 35
     ndkVersion "27.2.12479018"
     defaultConfig {
-        applicationId "io.github.mohaa.rp6"
+        applicationId "io.github.cricastrocoli.openmohaa"
         minSdkVersion 26
         targetSdkVersion 35
         versionCode 1
