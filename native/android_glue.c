@@ -1,8 +1,8 @@
 // Android glue for OpenMoHAA (our own code, GPL-2.0 like the engine).
 //
 // What the engine's Android changes (from emileb/openmohaa mobile_master) expect from the
-// app: the entry point (main_android), where the native libraries are (nativeLibsPath),
-// the screen size, a per-frame command hook and the controller movement/aiming hook.
+// app: the entry point (main_android), where the native libraries are (nativeLibsPath) and
+// the screen size. The controller hooks are in android_input.cpp.
 
 #include <dlfcn.h>
 #include <limits.h>
@@ -26,18 +26,6 @@ const char* nativeLibsPath = "";
 // Read by RB_SwapBuffers: the whole screen, in pixels.
 int mobile_screen_width = 1920;
 int mobile_screen_height = 1080;
-
-// Called once a frame from Com_Frame, before events: nothing yet.
-void IN_Android_Commands(void) {}
-
-// Called from CL_CreateCmd after the joystick movement: the place for the controller aiming
-// (response curve, radial dead zone, turn ramp, gyro). Empty for now: the engine's own
-// joystick handling is used.
-typedef struct usercmd_s usercmd_t;
-void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
-  (void) cmd;
-  (void) frame_msec;
-}
 
 static void findNativeLibsPath(void) {
   static char dir[PATH_MAX];
@@ -85,7 +73,7 @@ int SDL_main(int argc, char** argv) {
     "+set", "fs_homepath", homePath,
     "+set", "r_fullscreen", "1",
     "+set", "r_mode", "-2",
-    "+set", "in_joystick", "1",
+    "+set", "in_joystick", "0",  // the controller is handled in android_input.cpp
     NULL,
   };
   int count = (int) (sizeof(args) / sizeof(args[0])) - 1;

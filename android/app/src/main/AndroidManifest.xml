@@ -48,6 +48,9 @@
     <!-- Allow access to the vibrator -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- Network: the single-player game runs a local server; multiplayer needs the internet. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- if you want to capture audio, uncomment this. -->
     <!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->
 

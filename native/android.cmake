@@ -45,7 +45,7 @@ set(BISON_EXECUTABLE /opt/homebrew/opt/bison/bin/bison CACHE FILEPATH "" FORCE)
 # Our Android glue (entry point, paths, screen size, the controller aiming hook) joins the
 # client library once OpenMoHAA's CMakeLists has defined it.
 function(mohaa_android_finish)
-  target_sources(openmohaa PRIVATE ${NATIVE_DIR}/android_glue.c)
+  target_sources(openmohaa PRIVATE ${NATIVE_DIR}/android_glue.c ${NATIVE_DIR}/android_input.cpp)
   target_link_libraries(openmohaa PRIVATE SDL2::SDL2main GL4ES log android)
   add_dependencies(openmohaa OpenAL)
 endfunction()
