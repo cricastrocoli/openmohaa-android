@@ -42,6 +42,8 @@ int SDL_main(int argc, char** argv) {
   (void) argc;
   (void) argv;
   findNativeLibsPath();
+  // Android's Back button reaches the game (as Esc, the menu) instead of closing the app.
+  SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
 
   SDL_DisplayMode mode;
   if(SDL_GetDesktopDisplayMode(0, &mode) == 0) {

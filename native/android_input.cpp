@@ -2,8 +2,9 @@
 //
 // Aiming (right stick): radial dead zone, response curve, turn ramp at full deflection, rates
 // in degrees per second (independent of the frame rate), scaled down while zoomed like the
-// mouse. Moving (left stick): analog. Buttons: the game's own commands. In menus the sticks
-// move the pointer, A clicks and B goes back.
+// mouse. Moving (left stick): analog. Buttons: the game's own commands; crouch (L3) and walk
+// (R3) are click-on/click-off toggles. Start and Android's Back open the menu. In menus the
+// sticks move the pointer, A clicks and B goes back.
 //
 // Tunable with rp_* cvars (saved in the config):
 //   rp_aim_yaw / rp_aim_pitch   turn rate at full deflection, degrees/second (200 / 140)
@@ -85,29 +86,33 @@ enum { B_A, B_B, B_X, B_Y, B_LB, B_RB, B_LT, B_RT, B_L3, B_R3, B_UP, B_DOWN, B_L
        B_START, B_BACK, B_COUNT };
 
 typedef struct {
-    const char* hold;  // "+cmd": sent as +cmd on press and -cmd on release
-    const char* press; // a command sent once on press
+    const char* hold;   // "+cmd": sent as +cmd on press and -cmd on release
+    const char* press;  // a command sent once on press
+    const char* toggle; // "+cmd": one click turns it on (+cmd), the next turns it off (-cmd)
 } Action;
 
-// In-game layout (Xbox naming, as the Retroid Pocket 6 reports its buttons).
+// In-game layout (Xbox naming, as the Retroid Pocket 6 reports its buttons). Handhelds are
+// awkward to hold buttons down on, so crouch and walk are toggles.
 static const Action gameActions[B_COUNT] = {
-    /* A     */ {"+moveup", NULL},       // jump
-    /* B     */ {"+movedown", NULL},     // crouch (hold)
-    /* X     */ {NULL, "reload"},
-    /* Y     */ {NULL, "weapnext"},
-    /* LB    */ {"+leanleft", NULL},
-    /* RB    */ {"+leanright", NULL},
-    /* LT    */ {"+attacksecondary", NULL},
-    /* RT    */ {"+attackprimary", NULL},
-    /* L3    */ {"+speed", NULL},        // walk while held (the game runs by default)
-    /* R3    */ {"+use", NULL},
-    /* UP    */ {NULL, "useweaponclass grenade"},
-    /* DOWN  */ {NULL, "holster"},
-    /* LEFT  */ {NULL, "weapprev"},
-    /* RIGHT */ {NULL, "toggleitem"},
-    /* START */ {NULL, "togglemenu"},
-    /* BACK  */ {"+scores", NULL},       // objectives / scores while held
+    /* A     */ {"+moveup", NULL, NULL},          // jump
+    /* B     */ {"+use", NULL, NULL},             // use: doors, mounted guns
+    /* X     */ {NULL, "reload", NULL},
+    /* Y     */ {NULL, "toggleitem", NULL},       // binoculars / items
+    /* LB    */ {NULL, "weapprev", NULL},
+    /* RB    */ {NULL, "weapnext", NULL},
+    /* LT    */ {"+attacksecondary", NULL, NULL},
+    /* RT    */ {"+attackprimary", NULL, NULL},
+    /* L3    */ {NULL, NULL, "+movedown"},        // crouch: click on, click off
+    /* R3    */ {NULL, NULL, "+speed"},           // walk: click on, click off
+    /* UP    */ {NULL, "useweaponclass grenade", NULL},
+    /* DOWN  */ {NULL, "holster", NULL},
+    /* LEFT  */ {"+leanleft", NULL, NULL},
+    /* RIGHT */ {"+leanright", NULL, NULL},
+    /* START */ {NULL, NULL, NULL},               // the menu (sent as Esc)
+    /* BACK  */ {"+scores", NULL, NULL},          // objectives / scores while held
 };
+
+static bool toggled[B_COUNT];  // a toggle is on
 
 static bool down[B_COUNT];
 static bool held[B_COUNT];  // a game "+cmd" is active for this button
@@ -143,21 +148,41 @@ static void releaseHeld(void) {
     }
 }
 
+// Toggles (crouch, walk) stay on through menus: the game gets them back on returning.
+static void sendToggles(bool on) {
+    for (int b = 0; b < B_COUNT; b++) {
+        if (toggled[b]) Cbuf_AddText(va("%s%s\n", on ? "+" : "-", gameActions[b].toggle + 1));
+    }
+}
+
 static void menuKey(int key, bool isDown) {
     Com_QueueEvent(Sys_Milliseconds(), SE_KEY, key, isDown ? qtrue : qfalse, 0, NULL);
+}
+
+// Esc opens or closes the menu as it goes down, so the release would land in the other mode
+// and be lost (leaving the key "held"): it is sent down and up together, on press.
+static void escape(bool isDown) {
+    if (!isDown) return;
+    menuKey(K_ESCAPE, true);
+    menuKey(K_ESCAPE, false);
 }
 
 static void buttonChanged(int b, bool isDown, bool menu) {
     if (menu) {
         switch (b) {
             case B_A: menuKey(K_MOUSE1, isDown); break;
-            case B_B: case B_START: menuKey(K_ESCAPE, isDown); break;
+            case B_B: case B_START: escape(isDown); break;
             case B_UP: menuKey(K_UPARROW, isDown); break;
             case B_DOWN: menuKey(K_DOWNARROW, isDown); break;
             case B_LEFT: menuKey(K_LEFTARROW, isDown); break;
             case B_RIGHT: menuKey(K_RIGHTARROW, isDown); break;
             default: break;
         }
+        return;
+    }
+    if (b == B_START) {
+        // The game's menu opens with Esc (its key handler), not with a console command.
+        escape(isDown);
         return;
     }
     // Select + LB / RB: quick save / quick load (single player).
@@ -172,6 +197,9 @@ static void buttonChanged(int b, bool isDown, bool menu) {
         else if (!isDown && held[b]) { Cbuf_AddText(va("-%s\n", a->hold + 1)); held[b] = false; }
     } else if (a->press && isDown) {
         Cbuf_AddText(va("%s\n", a->press));
+    } else if (a->toggle && isDown) {
+        toggled[b] = !toggled[b];
+        Cbuf_AddText(va("%s%s\n", toggled[b] ? "+" : "-", a->toggle + 1));
     }
 }
 
@@ -190,8 +218,10 @@ extern "C" void IN_Android_Commands(void) {
     static bool wasMenu;
     bool menu = inMenu();
     if (menu != wasMenu) {
-        // Switching between menu and game: let go of everything held in the other mode.
+        // Switching between menu and game: let go of everything held in the other mode;
+        // toggles come back when the game does.
         releaseHeld();
+        sendToggles(!menu);
         for (int b = 0; b < B_COUNT; b++) down[b] = readButton(b);
         wasMenu = menu;
         lastCursorTime = SDL_GetTicks();
