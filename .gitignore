@@ -1,0 +1,11 @@
+# Third-party sources (cloned or downloaded; OpenMoHAA has its own repo, branch rp6-android)
+/src/
+# Game files (from your own copy of the game)
+/game-gog/
+# Builds
+/build-mac/
+/mac-install/
+android/.gradle/
+android/app/build/
+android/app/.cxx/
+android/local.properties
