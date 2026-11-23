@@ -10,3 +10,6 @@ android/app/build/
 android/app/.cxx/
 android/local.properties
 /build-tools-src/
+android/keystore.properties
+*.jks
+*.keystore

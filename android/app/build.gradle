@@ -12,7 +12,7 @@ android {
         minSdkVersion 26
         targetSdkVersion 35
         versionCode 1
-        versionName "0.1"
+        versionName "1.0.0"
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_PLATFORM=android-26", "-DANDROID_STL=c++_shared", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_PROJECT_openmohaa_INCLUDE=" + file('../../native/android.cmake').absolutePath
@@ -20,10 +20,26 @@ android {
             }
         }
     }
+    // Release signing: from android/keystore.properties (kept out of git), with
+    //   storeFile=<path to the .jks>  storePassword=…  keyAlias=…  keyPassword=…
+    // Without it, release builds are signed with the debug key (fine for testing only).
+    def keystoreProps = new Properties()
+    def keystoreFile = rootProject.file('keystore.properties')
+    if (keystoreFile.exists()) keystoreFile.withInputStream { keystoreProps.load(it) }
+    signingConfigs {
+        release {
+            if (keystoreFile.exists()) {
+                storeFile file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
-            signingConfig signingConfigs.debug  // personal use
+            signingConfig keystoreFile.exists() ? signingConfigs.release : signingConfigs.debug
         }
     }
     externalNativeBuild {
