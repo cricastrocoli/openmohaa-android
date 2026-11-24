@@ -31,7 +31,7 @@ game files.
 
 The Android port (`native/`, the Android project in `android/`) was developed by cricastrocoli
 with the help of generative AI: Claude (Anthropic) for the development, DeepSeek for reviewing
-the plan.
+the plan and the code.
 
 ## bzip2 license
 

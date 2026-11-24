@@ -207,7 +207,7 @@ OpenMoHAA.
 ## Créditos
 
 Port para Android por **cricastrocoli**, desenvolvido com auxílio de IA generativa:
-**Claude** (Anthropic) no desenvolvimento e **DeepSeek** na revisão do planejamento.
+**Claude** (Anthropic) no desenvolvimento e **DeepSeek** na revisão do planejamento e do código.
 
 Este projeto só existe graças a:
 

@@ -202,7 +202,7 @@ OpenMoHAA fork.
 ## Credits
 
 Android port by **cricastrocoli**, developed with the help of generative AI: **Claude**
-(Anthropic) for the development, **DeepSeek** for reviewing the plan.
+(Anthropic) for the development, **DeepSeek** for reviewing the plan and the code.
 
 This project only exists thanks to:
 

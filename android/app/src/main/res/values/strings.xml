@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">OpenMoHAA Android</string>
     <string name="credits_title">OpenMoHAA Android</string>
-    <string name="credits_port">Android port by cricastrocoli, developed with the help of generative AI: Claude (Anthropic) for the development, DeepSeek for reviewing the plan.</string>
+    <string name="credits_port">Android port by cricastrocoli, developed with the help of generative AI: Claude (Anthropic) for the development, DeepSeek for reviewing the plan and the code.</string>
     <string name="credits_built_on_title">Built on free software</string>
     <string name="credits_built_on">OpenMoHAA, by the OpenMoHAA team (GPL-2.0)\nAndroid engine changes by emileb (GPL-2.0)\nioquake3 and the Quake III Arena engine by id Software (GPL-2.0)\nSDL2 (zlib) · OpenAL Soft (LGPL) · gl4es by ptitSeb (MIT)\nzlib · libjpeg (Independent JPEG Group) · libogg and libvorbis (Xiph.Org) · libmad · Recast Navigation\nGOG installer import: innoextract by Daniel Scharrer (zlib), with Boost, bzip2 and xz</string>
     <string name="credits_notice">Not affiliated with or endorsed by Electronic Arts. Medal of Honor is a trademark of Electronic Arts Inc. You need your own copy of the original game files.\nFree software under the GNU GPL 2.0: source at github.com/cricastrocoli/openmohaa-android</string>
