@@ -149,7 +149,8 @@ ignora toques, então um toque sem querer não faz nada).
 - **Andar:** a parte esquerda da tela; o analógico aparece onde o polegar encostar.
 - **Mirar:** arraste em qualquer ponto da parte direita, inclusive a partir dos botões.
   Arrastos lentos são precisos; movimentos rápidos giram mais, para virar depressa.
-- **Botões:** atirar e mira (segurar), recarregar, granada, pular, agachar, usar, arma, item e
+- **Botões:** atirar e mira (segurar), recarregar, pular, agachar, usar, arma (que também
+  escolhe a granada), item e
   menu. Atirar, mira e pular agem assim que tocados; os outros agem num toque, e um arrasto
   que começa neles gira a visão.
 - **Menus:** toque no que quiser, como em qualquer app (também com controle conectado, a menos

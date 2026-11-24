@@ -68,10 +68,11 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             new Button(ALTFIRE, R.string.touch_altfire, 124, 240, 32, true),  // between use and the right edge
             // Next to fire: reload and jump. Jump acts at once, so only its own circle counts
             // (no margin around it). No grenade button: it only picks the grenade, as the
-            // weapon button does. Crouch in the bottom right corner.
+            // weapon button does. Crouch on the right edge above fire's height, clear of the
+            // ammo count in the bottom right corner.
             new Button(RELOAD, R.string.touch_reload, 215, 62, 34, false),
             new Button(JUMP, R.string.touch_jump, 225, 170, 32, true),
-            new Button(CROUCH, R.string.touch_crouch, 36, 36, 27, false),
+            new Button(CROUCH, R.string.touch_crouch, 36, 212, 27, false),
             new Button(USE, R.string.touch_use, 215, 268, 30, false),
             new Button(NEXTWEAPON, R.string.touch_weapon, 72, 345, 30, false),
             new Button(ITEM, R.string.touch_item, 160, 345, 26, false),

@@ -145,7 +145,8 @@ screen ignores touches, so a stray touch does nothing).
 - **Move:** the left part of the screen; a stick appears where your thumb lands.
 - **Aim:** drag anywhere on the right part, including from the buttons. Slow drags are
   precise; fast swipes turn faster, for quick turns.
-- **Buttons:** fire and aim (held), reload, grenade, jump, crouch, use, weapon, item and menu.
+- **Buttons:** fire and aim (held), reload, jump, crouch, use, weapon (which also picks
+  the grenade), item and menu.
   Fire, aim and jump act as soon as they are touched; the others act on a tap, and a drag
   that starts on them turns the view instead.
 - **Menus:** tap what you want, as on any app (also with a controller connected, unless
