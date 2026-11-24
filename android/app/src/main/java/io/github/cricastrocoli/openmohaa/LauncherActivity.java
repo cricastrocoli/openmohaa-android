@@ -62,6 +62,7 @@ public class LauncherActivity extends Activity {
     private Prefs prefs;
     private FrameLayout pageHolder;
     private TextView statusText, statusDot;
+    private FrameLayout updateSlot;
     private ImageView background;
     private LinearLayout hints;
     private Page page = Page.HOME;
@@ -119,6 +120,11 @@ public class LauncherActivity extends Activity {
         nameSub.setLetterSpacing(0.2f);
         header.addView(nameSub);
         header.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
+        // A newer version on GitHub (see UpdateCheck): a link to its page, before the status.
+        updateSlot = new FrameLayout(this);
+        updateSlot.setPadding(0, 0, dp(14), 0);
+        header.addView(updateSlot);
+        showUpdate();
         statusDot = text("●", 12, OK, false);
         header.addView(statusDot);
         statusText = text("", 14, INK_DIM, false);
@@ -161,6 +167,8 @@ public class LauncherActivity extends Activity {
         super.onResume();
         hideSystemBars();
         if (!importing) refreshStatus();
+        // At most once a day; when a newer version turns up, the home page shows it.
+        UpdateCheck.checkIfDue(this, () -> ui.post(() -> { if (!isFinishing()) showUpdate(); }));
     }
 
     // ---- Pages -----------------------------------------------------------------------------
@@ -992,6 +1000,15 @@ public class LauncherActivity extends Activity {
         lp.leftMargin = dp(6);
         b.setLayoutParams(lp);
         return b;
+    }
+
+    private void showUpdate() {
+        updateSlot.removeAllViews();
+        String[] update = UpdateCheck.available(this, version());
+        if (update == null) return;
+        View u = link(R.drawable.ic_github, true, getString(R.string.update_available, update[0]), update[1]);
+        u.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        updateSlot.addView(u);
     }
 
     private void openLink(String url) {
