@@ -152,7 +152,7 @@ launcher's menus.
 
 | Device | Chip | Result |
 |---|---|---|
-| Retroid Pocket 6 | Snapdragon 8 Gen 2 (QCS8550) | Native resolution, 120 FPS |
+| Retroid Pocket 6 | Snapdragon 8 Gen 2 (QCS8550) | Native resolution (1080p), 120 FPS |
 | Retroid Pocket 5 | Snapdragon 865 | Native resolution (1080p), steady 60 FPS |
 
 Other devices with similar chips should work. Reports are welcome in
