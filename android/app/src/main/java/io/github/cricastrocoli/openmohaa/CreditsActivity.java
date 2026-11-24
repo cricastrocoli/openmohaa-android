@@ -27,10 +27,14 @@ public class CreditsActivity extends Activity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean done;
+    private float uiScale = 1f;  // as in the launcher: smaller on screens shorter than 450 dp
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        android.util.DisplayMetrics m = new android.util.DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(m);
+        uiScale = Math.max(0.7f, Math.min(1f, Math.min(m.widthPixels, m.heightPixels) / m.density / 450f));
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
         column.setGravity(Gravity.CENTER);
@@ -63,7 +67,7 @@ public class CreditsActivity extends Activity {
     private TextView text(int id, int sp, int color, boolean bold, int topMargin) {
         TextView t = new TextView(this);
         t.setText(id);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp * uiScale);
         t.setTextColor(color);
         t.setGravity(Gravity.CENTER);
         t.setLineSpacing(0, 1.25f);
@@ -76,7 +80,7 @@ public class CreditsActivity extends Activity {
     }
 
     private int dp(int v) {
-        return Math.round(v * getResources().getDisplayMetrics().density);
+        return Math.round(v * getResources().getDisplayMetrics().density * uiScale);
     }
 
     private void hideSystemBars() {

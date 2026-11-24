@@ -1,5 +1,6 @@
 package io.github.cricastrocoli.openmohaa;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -49,6 +50,9 @@ public class GameActivity extends SDLActivity {
         Display display = getWindowManager().getDefaultDisplay();
         Display.Mode current = display.getMode(), best = current;
         for (Display.Mode m : display.getSupportedModes()) {
+            Log.v("MOHAA", "display supports " + m.getModeId() + ": " + m.getPhysicalWidth() + "x"
+                    + m.getPhysicalHeight() + " @ " + m.getRefreshRate() + " Hz"
+                    + (Build.VERSION.SDK_INT >= 31 ? " alt " + java.util.Arrays.toString(m.getAlternativeRefreshRates()) : ""));
             if (m.getPhysicalWidth() == current.getPhysicalWidth()
                     && m.getPhysicalHeight() == current.getPhysicalHeight()
                     && m.getRefreshRate() > best.getRefreshRate()) {
@@ -63,7 +67,13 @@ public class GameActivity extends SDLActivity {
 
         // The request loses to a limit the user set (a 60 Hz mode in the system settings or quick
         // settings, power saving): then say so, or the higher frame rate seems not to work.
-        if (best.getRefreshRate() > 61f) {
+        // Such a limit either hides the faster modes, leaving them only among the 60 Hz mode's
+        // alternative rates (Samsung), or keeps them listed but unused (Retroid): both count.
+        boolean faster = best.getRefreshRate() > 61f;
+        if (!faster && Build.VERSION.SDK_INT >= 31) {
+            for (float r : best.getAlternativeRefreshRates()) if (r > 61f) faster = true;
+        }
+        if (faster) {
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 if (isFinishing()) return;
                 // The display mode in use, not the momentary rate: adaptive screens drop below

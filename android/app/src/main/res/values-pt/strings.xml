@@ -94,7 +94,7 @@
     <string name="files_nospace">Não há espaço livre suficiente: são necessários %1$s.</string>
     <string name="setting_garand">Recarregar o rifle a qualquer momento</string>
     <string name="setting_garand_desc">No jogo original, o M1 Garand só recarrega com o pente vazio. Ligado, ele recarrega como as outras armas (campanha).</string>
-    <string name="refresh_capped">A tela está limitada a 60 Hz nas configurações do aparelho (taxa de atualização da tela ou economia de energia). Para jogar acima de 60 FPS, aumente lá.</string>
+    <string name="refresh_capped">Tela limitada a 60 Hz nas configurações</string>
     <string name="files_import_saves">Importar saves (%1$s)</string>
     <string name="saves_imported">%1$d saves importados.</string>
     <string name="saves_none">Nenhum save encontrado. Escolha os arquivos .sav (com os .ssv e .tga), ou um .zip com eles.</string>

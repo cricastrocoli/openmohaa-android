@@ -17,6 +17,8 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
   (o `setup_….exe` e os arquivos `.bin`), escolha-os no launcher e pronto: o app extrai o jogo
   sozinho. No Retroid Pocket 6 isso leva cerca de **70 segundos** para os três jogos (2,7 GB).
 - 🆕 **Até 120 FPS** em telas de 120 Hz, com opções de 30, 60 (padrão), 90, 120 ou sem limite.
+  Acima de 60, o app pede à tela a taxa de atualização mais alta, e avisa se as configurações
+  do aparelho a prendem em 60 Hz.
 - 🆕 **O rifle M1 Garand recarrega a qualquer momento.** No jogo original ele só recarrega
   com o pente vazio; aqui ele recarrega como as outras armas, sem perder balas. Vem desligado,
   para manter o comportamento original; ative em **Configurações** (só na campanha).
@@ -61,6 +63,9 @@ Tudo abaixo foi feito para esta versão Android:
 - `.zip` da pasta do jogo (ou só da pasta `main`).
 - Importar de novo pula o que já está igual, então uma importação interrompida continua de onde
   parou.
+- 🆕 **Importar saves** de um PC ou de outro aparelho: os arquivos `.sav` (com os `.ssv` e
+  `.tga`), ou um `.zip` da pasta `save`. As pastas `main`, `mainta` ou `maintt` do zip mandam
+  cada save para o jogo certo.
 
 ### Configurações
 
@@ -158,6 +163,7 @@ nos menus do launcher.
 |---|---|---|
 | Retroid Pocket 6 | Snapdragon 8 Gen 2 (QCS8550) | Resolução nativa (1080p), 120 FPS |
 | Retroid Pocket 5 | Snapdragon 865 | Resolução nativa (1080p), 60 FPS estáveis |
+| Samsung Galaxy S23 (Android 16) | Snapdragon 8 Gen 2 | Resolução nativa, tela em 120 Hz; instalado pelo instalador da GOG em cerca de 2 minutos |
 
 Outros aparelhos com processadores parecidos devem funcionar. Relatos são bem-vindos nas
 [Issues](../../issues).
