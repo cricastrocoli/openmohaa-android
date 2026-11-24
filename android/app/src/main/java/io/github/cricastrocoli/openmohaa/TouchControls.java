@@ -44,23 +44,27 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     private static final class Button {
         final int action, label;
         final float fromRight, fromBottom, radius;
-        final boolean aims;  // dragging from it also turns the view (fire)
+        // Held buttons (fire, aim) act while the finger is on them, and the finger can turn
+        // the view at the same time. The others act on a tap (on lifting the finger): a finger
+        // that drags from them turns the view instead, so the buttons don't take space from
+        // aiming and a swipe doesn't reload by accident.
+        final boolean holds;
         boolean pressed;
         float x, y, r;       // on screen, in pixels
 
-        Button(int action, int label, float fromRight, float fromBottom, float radius, boolean aims) {
+        Button(int action, int label, float fromRight, float fromBottom, float radius, boolean holds) {
             this.action = action;
             this.label = label;
             this.fromRight = fromRight;
             this.fromBottom = fromBottom;
             this.radius = radius;
-            this.aims = aims;
+            this.holds = holds;
         }
     }
 
     private final Button[] buttons = {
             new Button(FIRE, R.string.touch_fire, 100, 125, 50, true),
-            new Button(ALTFIRE, R.string.touch_altfire, 100, 245, 32, false),
+            new Button(ALTFIRE, R.string.touch_altfire, 100, 245, 32, true),
             // The most used next to fire: reload and grenade; jump and crouch further out.
             new Button(RELOAD, R.string.touch_reload, 215, 62, 34, false),
             new Button(GRENADE, R.string.touch_grenade, 225, 170, 32, false),
@@ -85,6 +89,8 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     // What each finger is doing: a Button, STICK or AIM.
     private final SparseArray<Object> fingers = new SparseArray<>();
     private final SparseArray<float[]> lastPos = new SparseArray<>();
+    private final SparseArray<float[]> startPos = new SparseArray<>();
+    private static final float TAP_SLOP_DP = 12;  // further than this, a tap on a button becomes aiming
     private static final Object STICK = new Object(), AIM = new Object();
     private float stickX, stickY, knobX, knobY;  // the stick's centre and the thumb, pixels
     private boolean stickHeld;
@@ -170,6 +176,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     private void releaseAll() {
         fingers.clear();
         lastPos.clear();
+        startPos.clear();
         for (Button b : buttons) b.pressed = false;
         stickHeld = false;
         try {
@@ -220,6 +227,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
 
     private void fingerDown(int id, float x, float y) {
         lastPos.put(id, new float[]{x, y});
+        startPos.put(id, new float[]{x, y});
         Button hit = null;
         for (Button b : buttons) {
             float dx = x - b.x, dy = y - b.y;
@@ -228,7 +236,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         if (hit != null) {
             fingers.put(id, hit);
             hit.pressed = true;
-            nativeAction(hit.action, true);
+            if (hit.holds) nativeAction(hit.action, true);
         } else if (x < getWidth() * 0.42f && !stickHeld) {
             fingers.put(id, STICK);
             stickHeld = true;
@@ -259,8 +267,18 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             float m = n <= dead ? 0 : (n - dead) / (1 - dead);
             float d = len > 0 ? len : 1;
             nativeMove(dx / d * m, dy / d * m);
-        } else if (what == AIM || (what instanceof Button && ((Button) what).aims)) {
+        } else if (what == AIM || (what instanceof Button && ((Button) what).holds)) {
             nativeAim((x - last[0]) / dp, (y - last[1]) / dp);
+        } else if (what instanceof Button) {
+            // A tap button: once the finger drags away, it aims instead (except the menu's).
+            Button b = (Button) what;
+            float[] start = startPos.get(id);
+            float sx = (x - start[0]) / dp, sy = (y - start[1]) / dp;
+            if (b.action != MENU && sx * sx + sy * sy > TAP_SLOP_DP * TAP_SLOP_DP) {
+                fingers.put(id, AIM);
+                if (fingers.indexOfValue(b) < 0) b.pressed = false;
+                nativeAim((x - last[0]) / dp, (y - last[1]) / dp);
+            }
         }
         last[0] = x;
         last[1] = y;
@@ -270,6 +288,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         Object what = fingers.get(id);
         fingers.remove(id);
         lastPos.remove(id);
+        startPos.remove(id);
         if (what == STICK) {
             stickHeld = false;
             nativeMove(0, 0);
@@ -277,7 +296,12 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             Button b = (Button) what;
             if (fingers.indexOfValue(b) < 0) {  // no other finger still on it
                 b.pressed = false;
-                nativeAction(b.action, false);
+                if (b.holds) {
+                    nativeAction(b.action, false);
+                } else {
+                    nativeAction(b.action, true);  // a tap: pressed for a frame
+                    nativeAction(b.action, false);
+                }
             }
         }
     }
