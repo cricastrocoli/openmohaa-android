@@ -423,6 +423,12 @@ public class LauncherActivity extends Activity {
         TextView desc = text(getString(R.string.controls_desc), 14, INK_DIM, false);
         desc.setPadding(dp(4), 0, 0, dp(10));
         list.addView(desc);
+        // Touch controls first; the buttons' rows follow (finishCapture counts on that order).
+        option(list, R.string.setting_touch, R.string.setting_touch_desc, new Choice() {
+            final int[] names = {R.string.touch_auto, R.string.touch_always, R.string.touch_never};
+            public String label() { return getString(names[prefs.touchMode()]); }
+            public void change(int s) { prefs.setTouchMode(wrap(prefs.touchMode() + s, 3)); }
+        });
         View first = null;
         for (int i = 0; i < Prefs.ACTIONS.length; i++) {
             final int action = i;
@@ -496,7 +502,7 @@ public class LauncherActivity extends Activity {
         // Rebuild so a swapped action shows its new button too; keep the focus on the row.
         showPage(Page.CONTROLS);
         ViewGroup list = (ViewGroup) ((ScrollView) pageHolder.getChildAt(0)).getChildAt(0);
-        View row = list.getChildAt(2 + action);  // title, description, then the actions
+        View row = list.getChildAt(3 + action);  // title, description, touch controls, then the actions
         if (row != null) row.requestFocus();
     }
 
@@ -794,6 +800,7 @@ public class LauncherActivity extends Activity {
         i.putExtra(GameActivity.EXTRA_WIDTH, r[0]);
         i.putExtra(GameActivity.EXTRA_HEIGHT, r[1]);
         i.putExtra(GameActivity.EXTRA_FPS, Prefs.FRAME_RATES[prefs.frameRate()]);
+        i.putExtra(GameActivity.EXTRA_TOUCH, prefs.touchMode());
         startActivity(i);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }

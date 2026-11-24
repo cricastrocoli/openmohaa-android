@@ -99,4 +99,19 @@
     <string name="saves_imported">%1$d saves importados.</string>
     <string name="saves_none">Nenhum save encontrado. Escolha os arquivos .sav (com os .ssv e .tga), ou um .zip com eles.</string>
     <string name="saves_error">Não foi possível importar os saves: %1$s</string>
+    <string name="setting_touch">Controles de toque</string>
+    <string name="setting_touch_desc">Controles na tela, e toque nos menus do jogo. Automático: os controles só aparecem sem controle conectado. Nunca: a tela ignora toques.</string>
+    <string name="touch_auto">Automático</string>
+    <string name="touch_always">Sempre</string>
+    <string name="touch_never">Nunca</string>
+    <string name="touch_fire">ATIRAR</string>
+    <string name="touch_altfire">MIRA</string>
+    <string name="touch_jump">PULAR</string>
+    <string name="touch_crouch">AGACHAR</string>
+    <string name="touch_reload">RECARR.</string>
+    <string name="touch_use">USAR</string>
+    <string name="touch_grenade">GRANADA</string>
+    <string name="touch_weapon">ARMA</string>
+    <string name="touch_item">ITEM</string>
+    <string name="touch_menu">MENU</string>
 </resources>

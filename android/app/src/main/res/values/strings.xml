@@ -110,4 +110,19 @@
     <string name="saves_imported">%1$d saved games imported.</string>
     <string name="saves_none">No saved games found. Pick the .sav files (with their .ssv and .tga), or a .zip holding them.</string>
     <string name="saves_error">The saved games could not be imported: %1$s</string>
+    <string name="setting_touch">Touch controls</string>
+    <string name="setting_touch_desc">On-screen controls, and tapping the game\'s menus. Automatic: the controls show only when no controller is connected. Never: the screen ignores touches.</string>
+    <string name="touch_auto">Automatic</string>
+    <string name="touch_always">Always</string>
+    <string name="touch_never">Never</string>
+    <string name="touch_fire">FIRE</string>
+    <string name="touch_altfire">AIM</string>
+    <string name="touch_jump">JUMP</string>
+    <string name="touch_crouch">CROUCH</string>
+    <string name="touch_reload">RELOAD</string>
+    <string name="touch_use">USE</string>
+    <string name="touch_grenade">GRENADE</string>
+    <string name="touch_weapon">WEAPON</string>
+    <string name="touch_item">ITEM</string>
+    <string name="touch_menu">MENU</string>
 </resources>

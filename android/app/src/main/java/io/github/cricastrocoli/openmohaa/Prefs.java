@@ -41,6 +41,10 @@ public final class Prefs {
     public boolean garandReload() { return p.getBoolean("garandReload", false); }
     public void setGarandReload(boolean b) { p.edit().putBoolean("garandReload", b).apply(); }
 
+    // Touch controls: TouchControls.AUTO (only without a controller), ALWAYS or NEVER.
+    public int touchMode() { return clamp(p.getInt("touchMode", TouchControls.AUTO), 3); }
+    public void setTouchMode(int m) { p.edit().putInt("touchMode", m).apply(); }
+
     public boolean invertAim() { return p.getBoolean("invertAim", false); }
     public void setInvertAim(boolean b) { p.edit().putBoolean("invertAim", b).apply(); }
 

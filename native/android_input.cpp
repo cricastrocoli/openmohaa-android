@@ -19,6 +19,12 @@
 //   rp_aim_invert               1: pushing up looks down (0)
 //   rp_move_deadzone            left stick dead zone (0.15)
 //   rp_cursor_speed             menu pointer speed at full deflection, pixels/second (1400)
+//   rp_touch_aim                touch aiming: degrees turned per dp the finger moves (0.20)
+//
+// Touch (TouchControls.java, an Android view over the game): it sets a move vector, adds aim
+// movement and presses actions through the JNI functions at the end; this file applies them
+// on the game's thread, once a frame, like the controller. In menus a tap puts the pointer
+// where the finger is and clicks.
 
 #include "client.h"
 
@@ -32,7 +38,7 @@ static cvar_t* buttonMap;
 static void loadButtonMap(void);
 
 static cvar_t *aimScale, *aimYaw, *aimPitch, *aimDead, *aimOuter, *aimCurve, *rampDelay, *rampTime, *rampBoost,
-              *aimInvert, *moveDead, *cursorSpeed;
+              *aimInvert, *moveDead, *cursorSpeed, *touchAim;
 
 static void registerCvars(void) {
     if (aimYaw) {
@@ -53,6 +59,7 @@ static void registerCvars(void) {
     aimInvert   = Cvar_Get("rp_aim_invert", "0", CVAR_ARCHIVE);
     moveDead    = Cvar_Get("rp_move_deadzone", "0.15", CVAR_ARCHIVE);
     cursorSpeed = Cvar_Get("rp_cursor_speed", "1400", CVAR_ARCHIVE);
+    touchAim    = Cvar_Get("rp_touch_aim", "0.20", CVAR_ARCHIVE);
 }
 
 // The first game controller, opened when it appears and dropped when it goes away.
@@ -206,6 +213,26 @@ static void escape(bool isDown) {
     menuKey(K_ESCAPE, false);
 }
 
+// An action pressed or released in the game (from a controller button or a touch button).
+static void actionChanged(int act, bool isDown) {
+    if (act < 0) return;
+    if (act == A_MENU) {
+        // The game's menu opens with Esc (its key handler), not with a console command.
+        escape(isDown);
+        return;
+    }
+    const Action* a = &actions[act];
+    if (a->hold) {
+        if (isDown && !held[act]) { Cbuf_AddText(va("%s\n", a->hold)); held[act] = true; }
+        else if (!isDown && held[act]) { Cbuf_AddText(va("-%s\n", a->hold + 1)); held[act] = false; }
+    } else if (a->press && isDown) {
+        Cbuf_AddText(va("%s\n", a->press));
+    } else if (a->toggle && isDown) {
+        toggled[act] = !toggled[act];
+        Cbuf_AddText(va("%s%s\n", toggled[act] ? "+" : "-", a->toggle + 1));
+    }
+}
+
 static void buttonChanged(int b, bool isDown, bool menu) {
     int act = buttonAction[b];
     if (menu) {
@@ -222,27 +249,63 @@ static void buttonChanged(int b, bool isDown, bool menu) {
         }
         return;
     }
-    if (act < 0) return;
-    if (act == A_MENU) {
-        // The game's menu opens with Esc (its key handler), not with a console command.
-        escape(isDown);
-        return;
-    }
     // Objectives button + previous / next weapon: quick save / quick load (single player).
-    if (isDown && down[actionButton[A_OBJECTIVES]] && (act == A_PREVWEAPON || act == A_NEXTWEAPON)) {
+    if (isDown && act >= 0 && down[actionButton[A_OBJECTIVES]] && (act == A_PREVWEAPON || act == A_NEXTWEAPON)) {
         if (held[A_OBJECTIVES]) { Cbuf_AddText("-scores\n"); held[A_OBJECTIVES] = false; }
         Cbuf_AddText(act == A_PREVWEAPON ? "savegame quick\n" : "loadgame quick\n");
         return;
     }
-    const Action* a = &actions[act];
-    if (a->hold) {
-        if (isDown && !held[act]) { Cbuf_AddText(va("%s\n", a->hold)); held[act] = true; }
-        else if (!isDown && held[act]) { Cbuf_AddText(va("-%s\n", a->hold + 1)); held[act] = false; }
-    } else if (a->press && isDown) {
-        Cbuf_AddText(va("%s\n", a->press));
-    } else if (a->toggle && isDown) {
-        toggled[act] = !toggled[act];
-        Cbuf_AddText(va("%s%s\n", toggled[act] ? "+" : "-", a->toggle + 1));
+    actionChanged(act, isDown);
+}
+
+// ---- Touch ---------------------------------------------------------------------------------
+
+// Written by the UI thread (JNI below), read by the game's thread once a frame.
+static SDL_SpinLock touchLock;
+static float touchMoveX, touchMoveY;  // the touch stick, -1..1 (y down)
+static float touchAimX, touchAimY;    // finger movement for aiming not yet applied, in dp
+static bool touchAction[A_COUNT];     // touch buttons held
+static bool touchPressed[A_COUNT];    // pressed since the last frame (a tap may already be over)
+static bool touchApplied[A_COUNT];    // as last applied to the game
+static int tapCount;                  // menu touches waiting: tapX/tapY (0-1 of the screen), tapDown
+static float tapX[16], tapY[16];
+static bool tapDown[16];
+static volatile int touchInMenu = 1;  // for the view: menus show no touch controls
+
+// The touch buttons' changes and the menu taps, on the game's thread.
+static void applyTouch(bool menu) {
+    bool now[A_COUNT];
+    float x = 0, y = 0;
+    bool isDown = false, tap = false;
+    SDL_AtomicLock(&touchLock);
+    memcpy(now, touchAction, sizeof(now));
+    // A tap shorter than a frame still presses its button for one frame.
+    for (int i = 0; i < A_COUNT; i++) if (touchPressed[i]) now[i] = true;
+    memset(touchPressed, 0, sizeof(touchPressed));
+    // One menu touch a frame, so a quick tap's press and release reach the menu in different
+    // frames, as a mouse click's do.
+    if (tapCount > 0) {
+        tap = true;
+        x = tapX[0];
+        y = tapY[0];
+        isDown = tapDown[0];
+        tapCount--;
+        memmove(tapX, tapX + 1, tapCount * sizeof(float));
+        memmove(tapY, tapY + 1, tapCount * sizeof(float));
+        memmove(tapDown, tapDown + 1, tapCount * sizeof(bool));
+    }
+    SDL_AtomicUnlock(&touchLock);
+
+    if (tap && menu) {
+        // The finger goes down: the pointer moves under it and the button goes down; it lifts:
+        // the button comes up (a click, as with a mouse; menus act on the release).
+        CL_SetMousePos((int) (x * cls.glconfig.vidWidth), (int) (y * cls.glconfig.vidHeight));
+        menuKey(K_MOUSE1, isDown);
+    }
+    for (int act = 0; act < A_COUNT; act++) {
+        if (now[act] == touchApplied[act]) continue;
+        touchApplied[act] = now[act];
+        if (!menu) actionChanged(act, now[act]);
     }
 }
 
@@ -256,10 +319,19 @@ static Uint32 lastCursorTime;
 extern "C" void IN_Android_Commands(void) {
     registerCvars();
     updatePad();
-    if (!pad) return;
 
     static bool wasMenu;
     bool menu = inMenu();
+    touchInMenu = menu;
+    applyTouch(menu);
+    if (!pad) {
+        if (menu != wasMenu) {
+            releaseHeld();
+            sendToggles(!menu);
+            wasMenu = menu;
+        }
+        return;
+    }
     if (menu != wasMenu) {
         // Switching between menu and game: let go of everything held in the other mode;
         // toggles come back when the game does.
@@ -300,8 +372,43 @@ extern "C" void IN_Android_Commands(void) {
 static float rampHeld;  // seconds the aim stick has been at full deflection
 
 // Called from CL_CreateCmd after the keyboard, mouse and joystick: movement and aiming.
+// Zoomed weapons scale the turn down as they do for the mouse.
+static float zoomScale(void) {
+    if (cge && cge->CG_SensitivityScale() >= 0.0f) return cge->CG_SensitivityScale();
+    return 1.0f;
+}
+
+static void addMove(usercmd_t* cmd, float x, float y) {
+    int fwd = cmd->forwardmove - (int) (y * 127);
+    int side = cmd->rightmove + (int) (x * 127);
+    cmd->forwardmove = (signed char) (fwd < -127 ? -127 : fwd > 127 ? 127 : fwd);
+    cmd->rightmove = (signed char) (side < -127 ? -127 : side > 127 ? 127 : side);
+}
+
+// Touch: the stick's move and the finger movement for aiming since the last frame.
+static void touchMove(usercmd_t* cmd) {
+    SDL_AtomicLock(&touchLock);
+    float mx = touchMoveX, my = touchMoveY, ax = touchAimX, ay = touchAimY;
+    touchAimX = touchAimY = 0;
+    SDL_AtomicUnlock(&touchLock);
+    if (mx || my) addMove(cmd, mx, my);
+    if (ax || ay) {
+        float deg = touchAim->value * aimScale->value * zoomScale();
+        cl.viewangles[YAW] -= ax * deg;
+        cl.viewangles[PITCH] += (aimInvert->integer ? -ay : ay) * deg;
+    }
+}
+
 extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
-    if (!pad || inMenu()) { rampHeld = 0; return; }
+    if (inMenu()) {
+        rampHeld = 0;
+        SDL_AtomicLock(&touchLock);
+        touchAimX = touchAimY = 0;  // aiming done over a menu isn't kept for later
+        SDL_AtomicUnlock(&touchLock);
+        return;
+    }
+    touchMove(cmd);
+    if (!pad) { rampHeld = 0; return; }
     float dt = frame_msec / 1000.0f;
     if (dt <= 0) return;
     if (dt > 0.1f) dt = 0.1f;
@@ -333,12 +440,67 @@ extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
         rampHeld = 0;
     }
 
-    // Zoomed weapons scale the turn down as they do for the mouse.
-    float zoom = 1.0f;
-    if (cge && cge->CG_SensitivityScale() >= 0.0f) zoom = cge->CG_SensitivityScale();
+    float zoom = zoomScale();
 
     float yawRate = aimYaw->value * aimScale->value * curved * (1.0f + boost) * zoom;
     float pitchRate = aimPitch->value * aimScale->value * curved * zoom;
     cl.viewangles[YAW] -= dx * yawRate * dt;
     cl.viewangles[PITCH] += (aimInvert->integer ? -dy : dy) * pitchRate * dt;
+}
+
+// ---- JNI: TouchControls.java ---------------------------------------------------------------
+
+#include <jni.h>
+
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeMove(JNIEnv*, jclass, jfloat x, jfloat y) {
+    SDL_AtomicLock(&touchLock);
+    touchMoveX = x;
+    touchMoveY = y;
+    SDL_AtomicUnlock(&touchLock);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeAim(JNIEnv*, jclass, jfloat dx, jfloat dy) {
+    SDL_AtomicLock(&touchLock);
+    touchAimX += dx;
+    touchAimY += dy;
+    SDL_AtomicUnlock(&touchLock);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeAction(JNIEnv*, jclass, jint action, jboolean isDown) {
+    if (action < 0 || action >= A_COUNT) return;
+    SDL_AtomicLock(&touchLock);
+    touchAction[action] = isDown;
+    if (isDown) touchPressed[action] = true;
+    SDL_AtomicUnlock(&touchLock);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeMenuTouch(JNIEnv*, jclass, jfloat x, jfloat y,
+                                                                     jboolean isDown) {
+    SDL_AtomicLock(&touchLock);
+    if (tapCount < 16) {
+        tapX[tapCount] = x;
+        tapY[tapCount] = y;
+        tapDown[tapCount] = isDown;
+        tapCount++;
+    }
+    SDL_AtomicUnlock(&touchLock);
+}
+
+// Lets go of everything touch holds (a controller came, the controls were hidden).
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeReleaseAll(JNIEnv*, jclass) {
+    SDL_AtomicLock(&touchLock);
+    touchMoveX = touchMoveY = touchAimX = touchAimY = 0;
+    memset(touchAction, 0, sizeof(touchAction));
+    memset(touchPressed, 0, sizeof(touchPressed));
+    SDL_AtomicUnlock(&touchLock);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeInMenu(JNIEnv*, jclass) {
+    return touchInMenu ? JNI_TRUE : JNI_FALSE;
 }

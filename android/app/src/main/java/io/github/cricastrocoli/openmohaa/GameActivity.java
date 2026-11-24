@@ -21,11 +21,17 @@ public class GameActivity extends SDLActivity {
     public static final String EXTRA_WIDTH = "width";
     public static final String EXTRA_HEIGHT = "height";
     public static final String EXTRA_FPS = "fps";  // the frame rate cap; 0 = unlimited
+    public static final String EXTRA_TOUCH = "touch";  // TouchControls.AUTO / ALWAYS / NEVER
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestRefreshRate();
+        // Touch controls and menu taps, over the game (see TouchControls).
+        if (mLayout != null) {
+            mLayout.addView(new TouchControls(this, getIntent().getIntExtra(EXTRA_TOUCH, TouchControls.AUTO)),
+                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
         // A lower render resolution: the GPU draws fewer pixels and the display scales them up.
         int w = getIntent().getIntExtra(EXTRA_WIDTH, 0), h = getIntent().getIntExtra(EXTRA_HEIGHT, 0);
         if (w > 0 && h > 0 && mSurface != null) {
