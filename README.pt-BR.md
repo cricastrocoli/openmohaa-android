@@ -29,6 +29,8 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
   economizam bateria; a imagem é ampliada para a tela inteira).
 - 🆕 **Mods e traduções** com importação pelo launcher, ligar/desligar e um conjunto por jogo.
 - 🆕 **Spearhead e Breakthrough**: escolha a campanha na tela inicial (LB / RB).
+- 🆕 **Controles por toque** para celulares sem controle (opcionais, automáticos), e toque
+  para escolher nos menus do jogo.
 - Allied Assault, Spearhead e Breakthrough num só app, os três testados.
 
 <p>
@@ -137,20 +139,29 @@ dentro dele num `.zip` e importe esse `.zip` na página **Mods**.
   mostrar "Jogo salvo" mesmo assim.
 - Caixas de mensagem do jogo maiores e legíveis em telas pequenas.
 
-## Sobre controles por toque
+## Controles por toque
 
-Este port **não tem controles por toque**, e isso foi uma escolha. Ele foi feito para
-portáteis com controles físicos (como o Retroid Pocket), onde um jogo de tiro em primeira
-pessoa dos anos 2000, com mira precisa, inclinação, agachar e troca de armas, funciona de
-verdade. Botões na tela cobririam boa parte da imagem e não dariam a mesma precisão.
+🆕 Para jogar no celular sem controle. No modo padrão (**Automático**) os controles na tela só
+aparecem enquanto não há controle conectado: conecte ou pareie um, mesmo no meio da partida, e
+eles somem. Dá para mudar na página **Controles**: Automático, **Sempre** ou **Nunca** (a tela
+ignora toques, então um toque sem querer não faz nada).
 
-**Em celulares, use um controle USB ou Bluetooth** (padrão Xbox / Android). O toque funciona
-nos menus do launcher.
+- **Andar:** a parte esquerda da tela; o analógico aparece onde o polegar encostar.
+- **Mirar:** arraste em qualquer ponto da parte direita, inclusive a partir dos botões.
+  Arrastos lentos são precisos; movimentos rápidos giram mais, para virar depressa.
+- **Botões:** atirar e mira (segurar), recarregar, granada, pular, agachar, usar, arma, item e
+  menu. Atirar, mira e pular agem assim que tocados; os outros agem num toque, e um arrasto
+  que começa neles gira a visão.
+- **Menus:** toque no que quiser, como em qualquer app (também com controle conectado, a menos
+  que o toque esteja em Nunca).
+
+Um controle continua sendo o melhor jeito de jogar: a mira no analógico é mais precisa.
 
 ## Requisitos
 
 - Android 8.0 ou mais novo, 64 bits (arm64).
-- Um controle (embutido no aparelho, USB ou Bluetooth).
+- Um controle (embutido no aparelho, USB ou Bluetooth) é recomendado; em celulares sem
+  controle, os controles por toque funcionam.
 - Os arquivos originais do jogo: a versão da **GOG** (War Chest, com as duas expansões) foi a
   testada.
 - Espaço livre: cerca de 2,7 GB para o jogo e as expansões. Para instalar pelo instalador da

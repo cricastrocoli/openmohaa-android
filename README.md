@@ -32,6 +32,8 @@ computer needed.
 - 🆕 **Mods and translations**, imported through the launcher, switched on and off, a set per
   game.
 - 🆕 **Spearhead and Breakthrough**: pick the campaign on the home page (LB / RB).
+- 🆕 **Touch controls** for phones without a controller (optional, automatic), and tap to
+  choose in the game's menus.
 - Allied Assault, Spearhead and Breakthrough in one app, all three tested.
 
 <p>
@@ -133,20 +135,29 @@ the D-pad works as the arrow keys. After a level loads, the pointer is already o
   "Game saved" anyway.
 - The game's message boxes are larger and readable on small screens.
 
-## About touch controls
+## Touch controls
 
-This port **has no touch controls**, by design. It is made for handhelds with physical
-controls (such as the Retroid Pocket), where a 2000s first-person shooter, with precise
-aiming, leaning, crouching and weapon switching, really works. On-screen buttons would cover
-much of the picture and wouldn't give the same precision.
+🆕 For playing on a phone without a controller. By default (**Automatic**) the on-screen
+controls show only while no controller is connected: plug one in or pair it, even mid-game,
+and they go away. Change it on the **Controls** page: Automatic, **Always** or **Never** (the
+screen ignores touches, so a stray touch does nothing).
 
-**On phones, use a USB or Bluetooth controller** (Xbox / Android layout). Touch works in the
-launcher's menus.
+- **Move:** the left part of the screen; a stick appears where your thumb lands.
+- **Aim:** drag anywhere on the right part, including from the buttons. Slow drags are
+  precise; fast swipes turn faster, for quick turns.
+- **Buttons:** fire and aim (held), reload, grenade, jump, crouch, use, weapon, item and menu.
+  Fire, aim and jump act as soon as they are touched; the others act on a tap, and a drag
+  that starts on them turns the view instead.
+- **Menus:** tap what you want, as on any app (also with a controller connected, unless
+  touch is set to Never).
+
+A controller is still the best way to play: aiming with a stick is more precise.
 
 ## Requirements
 
 - Android 8.0 or newer, 64-bit (arm64).
-- A controller (built into the device, USB or Bluetooth).
+- A controller (built into the device, USB or Bluetooth) is recommended; on phones without
+  one, the touch controls work.
 - The original game files: the **GOG** version (War Chest, with both expansions) is the one
   tested.
 - Free space: about 2.7 GB for the game and its expansions. To install from the GOG
