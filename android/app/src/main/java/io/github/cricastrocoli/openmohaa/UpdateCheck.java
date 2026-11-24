@@ -27,19 +27,70 @@ final class UpdateCheck {
         return c.getSharedPreferences("update", Context.MODE_PRIVATE);
     }
 
-    // The newer version's {name, page}, from the last check, or null.
+    // The newer version's {name, page, APK address or null}, from the last check, or null.
     static String[] available(Context c, String current) {
         SharedPreferences p = prefs(c);
         String tag = p.getString("tag", null), url = p.getString("url", null);
         if (tag == null || url == null || !newer(tag, current)) return null;
-        return new String[]{tag.startsWith("v") ? tag.substring(1) : tag, url};
+        return new String[]{tag.startsWith("v") ? tag.substring(1) : tag, url, p.getString("apk", null)};
+    }
+
+    // ---- Installing ------------------------------------------------------------------------
+
+    interface Progress { void update(int percent); }
+
+    // Downloads the APK straight into an installer session and commits it: Android then asks
+    // the player to confirm (status STATUS_PENDING_USER_ACTION, sent to the statusIntent). It
+    // only installs over this app if signed with the same key. Runs on the caller's thread.
+    static void install(Context c, String apkUrl, android.content.IntentSender statusIntent, Progress progress)
+            throws java.io.IOException {
+        android.content.pm.PackageInstaller installer = c.getPackageManager().getPackageInstaller();
+        android.content.pm.PackageInstaller.SessionParams params = new android.content.pm.PackageInstaller.SessionParams(
+                android.content.pm.PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+        params.setAppPackageName(c.getPackageName());
+        // A download left from an earlier attempt (cancelled) goes first.
+        for (android.content.pm.PackageInstaller.SessionInfo old : installer.getMySessions()) {
+            try {
+                installer.abandonSession(old.getSessionId());
+            } catch (SecurityException ignored) {
+            }
+        }
+        int id = installer.createSession(params);
+        HttpURLConnection http = null;
+        try (android.content.pm.PackageInstaller.Session session = installer.openSession(id)) {
+            http = (HttpURLConnection) new URL(apkUrl).openConnection();
+            http.setConnectTimeout(10000);
+            http.setReadTimeout(20000);
+            http.setRequestProperty("User-Agent", "OpenMoHAA-Android");
+            if (http.getResponseCode() != 200) throw new java.io.IOException("HTTP " + http.getResponseCode());
+            long total = http.getContentLengthLong(), done = 0;
+            int lastPercent = -1;
+            try (InputStream in = http.getInputStream();
+                 java.io.OutputStream out = session.openWrite("update.apk", 0, total > 0 ? total : -1)) {
+                byte[] buf = new byte[65536];
+                for (int n; (n = in.read(buf)) > 0; ) {
+                    out.write(buf, 0, n);
+                    done += n;
+                    int percent = total > 0 ? (int) (done * 100 / total) : -1;
+                    if (percent != lastPercent && progress != null) progress.update(lastPercent = percent);
+                }
+                session.fsync(out);
+            }
+            session.commit(statusIntent);
+        } catch (java.io.IOException | RuntimeException e) {
+            installer.abandonSession(id);
+            throw e;
+        } finally {
+            if (http != null) http.disconnect();
+        }
     }
 
     // Checks in the background if the last check is a day old; calls back on success.
     static void checkIfDue(Context c, Listener listener) {
         SharedPreferences p = prefs(c);
         long now = System.currentTimeMillis();
-        if (now - p.getLong("checked", 0) < INTERVAL_MS) return;
+        // (A check saved before the APK's address was kept counts as not done.)
+        if (now - p.getLong("checked", 0) < INTERVAL_MS && p.contains("apk")) return;
         Context app = c.getApplicationContext();
         new Thread(() -> {
             HttpURLConnection http = null;
@@ -56,9 +107,16 @@ final class UpdateCheck {
                     for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
                 }
                 JSONObject release = new JSONObject(out.toString("UTF-8"));
+                String apk = null;  // the release's APK, to update from inside the app
+                org.json.JSONArray assets = release.optJSONArray("assets");
+                for (int i = 0; assets != null && i < assets.length(); i++) {
+                    JSONObject a = assets.getJSONObject(i);
+                    if (a.optString("name").endsWith(".apk")) apk = a.optString("browser_download_url", null);
+                }
                 prefs(app).edit()
                         .putString("tag", release.getString("tag_name"))
                         .putString("url", release.getString("html_url"))
+                        .putString("apk", apk)
                         .putLong("checked", now)
                         .apply();
                 if (listener != null) listener.onChecked();

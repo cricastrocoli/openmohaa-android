@@ -52,9 +52,11 @@ Tudo abaixo foi feito para esta versão Android:
 - Navegação completa pelo controle (direcional, A, B, LB / RB) e também por toque.
 - Português (Brasil) e inglês, conforme o idioma do aparelho.
 - Créditos na abertura do jogo.
-- 🆕 Avisa quando sai uma versão nova, com um link para baixar (a partir da 1.2.1). Ele
-  consulta a página de versões deste projeto no GitHub no máximo uma vez por dia; nada sobre
-  você ou o aparelho é enviado.
+- 🆕 Atualização pelo próprio app (a partir da 1.2.1): quando sai uma versão nova, a tela
+  inicial avisa; um toque baixa a atualização e o Android pede para confirmar (na primeira vez,
+  também para autorizar o app a instalar atualizações). Jogo, saves e configurações continuam.
+  Ele consulta a página de versões deste projeto no GitHub no máximo uma vez por dia; nada
+  sobre você ou o aparelho é enviado.
 
 ### Arquivos do jogo
 

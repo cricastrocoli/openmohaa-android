@@ -51,6 +51,10 @@
     <!-- Network: the single-player game runs a local server; multiplayer needs the internet. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Updates: the launcher downloads a newer release and hands it to Android's installer,
+         which asks the player to confirm (UpdateCheck). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- if you want to capture audio, uncomment this. -->
     <!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->
 

@@ -55,9 +55,10 @@ Everything below was made for this Android version:
 - Fully usable with a controller (D-pad, A, B, LB / RB), and by touch.
 - English and Brazilian Portuguese, following the device's language.
 - Credits when the game starts.
-- 🆕 Tells you when a new version is out, with a link to download it (from 1.2.1 on). It
-  checks this project's GitHub release page at most once a day; nothing about you or your
-  device is sent.
+- 🆕 Updates from inside the app (from 1.2.1 on): when a new version is out, the home page says
+  so; one tap downloads it and Android asks you to confirm the update (the first time, also to
+  let the app install updates). Your game files, saves and settings stay. It checks this
+  project's GitHub release page at most once a day; nothing about you or your device is sent.
 
 ### Game files
 

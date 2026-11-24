@@ -81,6 +81,9 @@ public class LauncherActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        android.content.IntentFilter installFilter = new android.content.IntentFilter(ACTION_INSTALL_STATUS);
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(installStatus, installFilter, RECEIVER_NOT_EXPORTED);
+        else registerReceiver(installStatus, installFilter);
         prefs = new Prefs(this);
         DisplayMetrics m = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getRealMetrics(m);
@@ -163,10 +166,23 @@ public class LauncherActivity extends Activity {
     }
 
     @Override
+    protected void onDestroy() {
+        unregisterReceiver(installStatus);
+        super.onDestroy();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         hideSystemBars();
         if (!importing) refreshStatus();
+        // Back from Android's confirmation without the update (cancelled; it doesn't always
+        // say so): the notice offers it again.
+        if (updating && confirmShown) {
+            updating = false;
+            confirmShown = false;
+            showUpdate();
+        }
         // At most once a day; when a newer version turns up, the home page shows it.
         UpdateCheck.checkIfDue(this, () -> ui.post(() -> { if (!isFinishing()) showUpdate(); }));
     }
@@ -1003,12 +1019,78 @@ public class LauncherActivity extends Activity {
     }
 
     private void showUpdate() {
+        if (updating) return;
         updateSlot.removeAllViews();
         String[] update = UpdateCheck.available(this, version());
         if (update == null) return;
         View u = link(R.drawable.ic_github, true, getString(R.string.update_available, update[0]), update[1]);
         u.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        TextView label = (TextView) ((ViewGroup) u).getChildAt(1);
+        u.setOnClickListener(v -> startUpdate(update, label));
         updateSlot.addView(u);
+    }
+
+    // ---- Updating --------------------------------------------------------------------------
+    //
+    // The update notice downloads the new release's APK into Android's installer (UpdateCheck),
+    // showing the progress in the notice; Android then asks the player to confirm (the first
+    // time, also to let this app install apps). Without an APK in the release, or if anything
+    // fails, it opens the release's page instead.
+
+    private static final String ACTION_INSTALL_STATUS = "io.github.cricastrocoli.openmohaa.INSTALL_STATUS";
+    private boolean updating;
+    private boolean confirmShown;  // Android's install confirmation is (or was) up
+    private String[] updateInfo;
+
+    private final android.content.BroadcastReceiver installStatus = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context c, Intent intent) {
+            int status = intent.getIntExtra(android.content.pm.PackageInstaller.EXTRA_STATUS, -999);
+            if (status == android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION) {
+                Intent confirm = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+                if (confirm != null) {
+                    confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(confirm);
+                    confirmShown = true;
+                }
+            } else if (status != android.content.pm.PackageInstaller.STATUS_SUCCESS) {
+                // Cancelled by the player, or refused: back to the notice.
+                updating = false;
+                showUpdate();
+                if (status != android.content.pm.PackageInstaller.STATUS_FAILURE_ABORTED) {
+                    android.util.Log.w("MOHAA", "update install: " + status + " "
+                            + intent.getStringExtra(android.content.pm.PackageInstaller.EXTRA_STATUS_MESSAGE));
+                    updateFailed();
+                }
+            }
+        }
+    };
+
+    private void startUpdate(String[] update, TextView label) {
+        if (updating) return;
+        updateInfo = update;
+        if (update[2] == null) { openLink(update[1]); return; }
+        updating = true;
+        label.setText(getString(R.string.update_downloading, update[0], 0));
+        Intent status = new Intent(ACTION_INSTALL_STATUS).setPackage(getPackageName());
+        int flags = android.app.PendingIntent.FLAG_UPDATE_CURRENT
+                | (Build.VERSION.SDK_INT >= 31 ? android.app.PendingIntent.FLAG_MUTABLE : 0);
+        android.content.IntentSender sender = android.app.PendingIntent.getBroadcast(this, 0, status, flags).getIntentSender();
+        new Thread(() -> {
+            try {
+                UpdateCheck.install(this, update[2], sender, percent -> ui.post(() ->
+                        label.setText(getString(R.string.update_downloading, update[0], Math.max(0, percent)))));
+                ui.post(() -> label.setText(getString(R.string.update_ready, update[0])));
+            } catch (Exception e) {
+                android.util.Log.w("MOHAA", "update download: " + e);
+                ui.post(() -> { updating = false; showUpdate(); updateFailed(); });
+            }
+        }, "update").start();
+    }
+
+    private void updateFailed() {
+        android.widget.Toast.makeText(this, R.string.update_failed, android.widget.Toast.LENGTH_LONG).show();
+        if (updateInfo != null) openLink(updateInfo[1]);
     }
 
     private void openLink(String url) {
