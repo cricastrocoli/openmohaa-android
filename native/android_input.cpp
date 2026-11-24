@@ -317,6 +317,42 @@ static void applyTouch(bool menu) {
     }
 }
 
+// ---- Background ----------------------------------------------------------------------------
+
+// When Android sends the app to the background (the screen locked, another app), SDL stops the
+// game's loop, but the sound goes through OpenAL, whose own thread kept playing the music. Its
+// output device is paused while the app is in the background (ALC_SOFT_pause_device) and
+// resumed when it returns. OpenAL is the engine's (dlopen'd), already loaded by then.
+#include <dlfcn.h>
+
+static void pauseSound(bool pause) {
+    void* lib = dlopen("libopenal.so", RTLD_NOW | RTLD_NOLOAD);
+    if (!lib) return;
+    typedef void* (*GetContext)(void);
+    typedef void* (*ContextDevice)(void*);
+    typedef void* (*GetProc)(void*, const char*);
+    typedef void (*DeviceFn)(void*);
+    GetContext getContext = (GetContext) dlsym(lib, "alcGetCurrentContext");
+    ContextDevice contextDevice = (ContextDevice) dlsym(lib, "alcGetContextsDevice");
+    GetProc getProc = (GetProc) dlsym(lib, "alcGetProcAddress");
+    void* context = getContext ? getContext() : NULL;
+    void* device = context && contextDevice ? contextDevice(context) : NULL;
+    DeviceFn fn = device && getProc ? (DeviceFn) getProc(device, pause ? "alcDevicePauseSOFT" : "alcDeviceResumeSOFT") : NULL;
+    if (fn) fn(device);
+    dlclose(lib);
+    Com_DPrintf("Sound %s (app %s)\n", pause ? "paused" : "resumed", pause ? "in the background" : "back");
+}
+
+// Called by SDL as each event is posted (on Android's thread, while the game's may be stopped).
+static int SDLCALL appEvents(void*, SDL_Event* e) {
+    switch (e->type) {
+        case SDL_APP_WILLENTERBACKGROUND: pauseSound(true); break;
+        case SDL_APP_DIDENTERFOREGROUND: pauseSound(false); break;
+        default: break;
+    }
+    return 0;
+}
+
 // ---- Per frame -----------------------------------------------------------------------------
 
 static float cursorRemX, cursorRemY;
@@ -326,6 +362,11 @@ static Uint32 lastCursorTime;
 // pointer.
 extern "C" void IN_Android_Commands(void) {
     registerCvars();
+    static bool watching;
+    if (!watching) {
+        SDL_AddEventWatch(appEvents, NULL);
+        watching = true;
+    }
     updatePad();
 
     static bool wasMenu;
