@@ -160,6 +160,9 @@ ignora toques, então um toque sem querer não faz nada).
 
 Um controle continua sendo o melhor jeito de jogar: a mira no analógico é mais precisa.
 
+Esta é a primeira versão dos controles por toque. Comentários e sugestões são bem-vindos nas
+[Issues](../../issues).
+
 ## Requisitos
 
 - Android 8.0 ou mais novo, 64 bits (arm64).

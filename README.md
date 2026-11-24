@@ -156,6 +156,9 @@ screen ignores touches, so a stray touch does nothing).
 
 A controller is still the best way to play: aiming with a stick is more precise.
 
+This is the first version of the touch controls. Feedback and suggestions are welcome in
+[Issues](../../issues).
+
 ## Requirements
 
 - Android 8.0 or newer, 64-bit (arm64).
