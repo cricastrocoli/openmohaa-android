@@ -137,6 +137,8 @@ the D-pad works as the arrow keys. After a level loads, the pointer is already o
 
 ## Touch controls
 
+![On-screen touch controls in a mission, on a Galaxy S23](docs/screenshots/touch.jpg)
+
 🆕 For playing on a phone without a controller. By default (**Automatic**) the on-screen
 controls show only while no controller is connected: plug one in or pair it, even mid-game,
 and they go away. Change it on the **Controls** page: Automatic, **Always** or **Never** (the

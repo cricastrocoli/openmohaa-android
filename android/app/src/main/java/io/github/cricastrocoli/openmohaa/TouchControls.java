@@ -64,7 +64,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     }
 
     private final Button[] buttons = {
-            new Button(FIRE, R.string.touch_fire, 100, 125, 50, true),
+            new Button(FIRE, R.string.touch_fire, 100, 125, 44, true),
             new Button(ALTFIRE, R.string.touch_altfire, 124, 240, 32, true),  // between use and the right edge
             // Next to fire: reload and jump. Jump acts at once, so only its own circle counts
             // (no margin around it). No grenade button: it only picks the grenade, as the
@@ -238,7 +238,9 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         Button hit = null;
         for (Button b : buttons) {
             float dx = x - b.x, dy = y - b.y;
-            float reach = b.r * (b.action == JUMP ? 1f : 1.15f);
+            // Buttons that act on touch (fire, aim, jump) count only inside their circle, so a
+            // swipe to aim that starts near them doesn't set them off; tap buttons get a margin.
+            float reach = b.r * (b.holds ? 1f : 1.15f);
             if (dx * dx + dy * dy <= reach * reach) { hit = b; break; }
         }
         if (hit != null) {

@@ -141,6 +141,8 @@ dentro dele num `.zip` e importe esse `.zip` na página **Mods**.
 
 ## Controles por toque
 
+![Controles por toque numa missão, num Galaxy S23](docs/screenshots/touch.jpg)
+
 🆕 Para jogar no celular sem controle. No modo padrão (**Automático**) os controles na tela só
 aparecem enquanto não há controle conectado: conecte ou pareie um, mesmo no meio da partida, e
 eles somem. Dá para mudar na página **Controles**: Automático, **Sempre** ou **Nunca** (a tela
