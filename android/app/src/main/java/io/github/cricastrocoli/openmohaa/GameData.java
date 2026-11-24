@@ -356,6 +356,58 @@ public final class GameData {
         return count == 0 ? -1 : count;
     }
 
+    // ---- Saves -----------------------------------------------------------------------------
+    //
+    // Saved games, brought from a PC or another device: .sav files (with their .ssv and .tga),
+    // or a .zip holding them. They go where the engine keeps its saves, home/<game>/save/omconfig
+    // ("save/" + the config's name). A zip's main/, mainta/ or maintt/ folders pick the game;
+    // otherwise they belong to the chosen campaign. Copied by the app, so the game can write over
+    // them later (files put there by other means may be read-only to it).
+
+    private static final String SAVE_FOLDER = "save/omconfig";
+
+    private static boolean isSaveFile(String name) {
+        String l = name.toLowerCase();
+        return l.endsWith(".sav") || l.endsWith(".ssv") || l.endsWith(".tga");
+    }
+
+    // The number of saved games (.sav files) imported, or -1 if there were none.
+    public static int importSaves(Context c, List<Uri> uris, int game) throws IOException {
+        ContentResolver cr = c.getContentResolver();
+        int count = 0;
+        byte[] buf = new byte[1 << 16];
+        for (Uri u : uris) {
+            String name = displayName(cr, u);
+            if (isSaveFile(name)) {
+                try (InputStream in = cr.openInputStream(u)) {
+                    copy(in, new File(saveDir(c, game), name), buf);
+                }
+                if (name.toLowerCase().endsWith(".sav")) count++;
+            } else if (name.toLowerCase().endsWith(".zip")) {
+                try (java.util.zip.ZipInputStream zin = new java.util.zip.ZipInputStream(cr.openInputStream(u))) {
+                    for (ZipEntry e; (e = zin.getNextEntry()) != null; ) {
+                        String en = e.getName().replace('\\', '/');
+                        String file = en.substring(en.lastIndexOf('/') + 1);
+                        if (e.isDirectory() || !isSaveFile(file)) continue;
+                        int g = game;
+                        for (String seg : en.split("/")) {
+                            for (int i = 0; i < FOLDERS.length; i++) if (seg.equalsIgnoreCase(FOLDERS[i])) g = i;
+                        }
+                        copy(zin, new File(saveDir(c, g), file), buf);
+                        if (file.toLowerCase().endsWith(".sav")) count++;
+                    }
+                }
+            }
+        }
+        return count == 0 ? -1 : count;
+    }
+
+    private static File saveDir(Context c, int game) throws IOException {
+        File dir = new File(modsDir(c, game), SAVE_FOLDER);
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Can't create " + dir);
+        return dir;
+    }
+
     private static File modsDir(Context c, int game, boolean create) throws IOException {
         File dir = modsDir(c, game);
         if (create && !dir.isDirectory() && !dir.mkdirs()) throw new IOException("Can't create " + dir);

@@ -40,6 +40,7 @@ public class LauncherActivity extends Activity {
     private static final int REQ_IMPORT = 1;
     private static final int REQ_MODS = 2;
     private static final int REQ_IMPORT_FILE = 3;
+    private static final int REQ_SAVES = 4;
 
     // Colours.
     private static final int INK = Color.rgb(236, 231, 214);         // text on dark
@@ -65,6 +66,7 @@ public class LauncherActivity extends Activity {
     private LinearLayout hints;
     private Page page = Page.HOME;
     private int screenW, screenH;
+    private float uiScale = 1f;  // see onCreate
     private View defaultFocus;  // the page's first tile, for the first key press
 
     // Controls page: the action waiting for a button (-1: none) and its row's value view.
@@ -83,6 +85,10 @@ public class LauncherActivity extends Activity {
         getWindowManager().getDefaultDisplay().getRealMetrics(m);
         screenW = Math.max(m.widthPixels, m.heightPixels);
         screenH = Math.min(m.widthPixels, m.heightPixels);
+        // The launcher is laid out for a handheld's screen, about 450 dp tall (the Retroid
+        // Pocket 6). Shorter ones, such as a phone held sideways (a Galaxy S23 is 360 dp), get
+        // the whole interface scaled down to fit, rather than cut off at the bottom.
+        uiScale = Math.max(0.7f, Math.min(1f, screenH / m.density / 450f));
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.rgb(14, 16, 12));
@@ -531,6 +537,14 @@ public class LauncherActivity extends Activity {
         focusable(importRow, new TextView[]{il}, v -> { if (!importing) pickImportFolder(); });
         list.addView(importRow, listItem());
 
+        // Saved games from a PC or another device (see GameData.importSaves).
+        LinearLayout savesRow = row();
+        savesRow.setPadding(dp(18), dp(14), dp(18), dp(14));
+        TextView sl = text("⤓  " + getString(R.string.files_import_saves, gameName(prefs.game())), 17, GOLD, true);
+        savesRow.addView(sl);
+        focusable(savesRow, new TextView[]{sl}, v -> { if (!importing) pickSaves(); });
+        list.addView(savesRow, listItem());
+
         importBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         importBar.setMax(1000);
         importBar.setVisibility(importing ? View.VISIBLE : View.GONE);
@@ -541,6 +555,35 @@ public class LauncherActivity extends Activity {
         defaultFocus = fileRow;
         fileRow.requestFocus();
         return scroll(list);
+    }
+
+    private void pickSaves() {
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(i, REQ_SAVES);
+    }
+
+    private void importSavesResult(Intent data) {
+        java.util.List<Uri> uris = new java.util.ArrayList<>();
+        if (data.getClipData() != null) {
+            for (int i = 0; i < data.getClipData().getItemCount(); i++) uris.add(data.getClipData().getItemAt(i).getUri());
+        } else if (data.getData() != null) {
+            uris.add(data.getData());
+        }
+        int game = prefs.game();
+        new Thread(() -> {
+            String msg;
+            try {
+                int n = GameData.importSaves(this, uris, game);
+                msg = n < 0 ? getString(R.string.saves_none) : getString(R.string.saves_imported, n);
+            } catch (Exception e) {
+                msg = getString(R.string.saves_error, e.getMessage() != null ? e.getMessage() : e.toString());
+            }
+            String m = msg;
+            ui.post(() -> { if (page == Page.FILES && importText != null) importText.setText(m); });
+        }, "saves").start();
     }
 
     private void pickImportFolder() {
@@ -561,6 +604,10 @@ public class LauncherActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQ_MODS && resultCode == RESULT_OK && data != null) {
             importModsResult(data);
+            return;
+        }
+        if (requestCode == REQ_SAVES && resultCode == RESULT_OK && data != null) {
+            importSavesResult(data);
             return;
         }
         if ((requestCode != REQ_IMPORT && requestCode != REQ_IMPORT_FILE) || resultCode != RESULT_OK
@@ -1010,7 +1057,7 @@ public class LauncherActivity extends Activity {
     private TextView text(String s, int sp, int colour, boolean bold) {
         TextView t = new TextView(this);
         t.setText(s);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp * uiScale);
         t.setTextColor(colour);
         if (bold) t.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
         return t;
@@ -1028,7 +1075,7 @@ public class LauncherActivity extends Activity {
     }
 
     private int dp(int v) {
-        return Math.round(v * getResources().getDisplayMetrics().density);
+        return Math.round(v * getResources().getDisplayMetrics().density * uiScale);
     }
 
     private static int wrap(int v, int n) {

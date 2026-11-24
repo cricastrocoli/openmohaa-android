@@ -105,4 +105,9 @@
     <string name="files_nospace">Not enough free space: %1$s are needed.</string>
     <string name="setting_garand">Reload the rifle at any time</string>
     <string name="setting_garand_desc">In the original game, the M1 Garand only reloads when its clip is empty. On, it reloads like the other weapons (campaign).</string>
+    <string name="refresh_capped">The screen is limited to 60 Hz in the device settings (screen refresh rate, or power saving). To play above 60 FPS, raise it there.</string>
+    <string name="files_import_saves">Import saved games (%1$s)</string>
+    <string name="saves_imported">%1$d saved games imported.</string>
+    <string name="saves_none">No saved games found. Pick the .sav files (with their .ssv and .tga), or a .zip holding them.</string>
+    <string name="saves_error">The saved games could not be imported: %1$s</string>
 </resources>

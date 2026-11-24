@@ -1,11 +1,15 @@
 package io.github.cricastrocoli.openmohaa;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Display;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Toast;
 
+import org.libsdl.app.R;
 import org.libsdl.app.SDLActivity;
 
 // The game itself: SDL's activity, given the launcher's settings as engine arguments. It runs
@@ -56,6 +60,19 @@ public class GameActivity extends SDLActivity {
         getWindow().setAttributes(lp);
         Log.v("MOHAA", "display mode: " + best.getPhysicalWidth() + "x" + best.getPhysicalHeight()
                 + " @ " + best.getRefreshRate() + " Hz (frame rate cap " + fps + ")");
+
+        // The request loses to a limit the user set (a 60 Hz mode in the system settings or quick
+        // settings, power saving): then say so, or the higher frame rate seems not to work.
+        if (best.getRefreshRate() > 61f) {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (isFinishing()) return;
+                // The display mode in use, not the momentary rate: adaptive screens drop below
+                // 60 Hz while nothing moves (a loading screen) even when 120 Hz is allowed.
+                float now = getWindowManager().getDefaultDisplay().getMode().getRefreshRate();
+                Log.v("MOHAA", "display mode now " + now + " Hz");
+                if (now < 61f) Toast.makeText(this, R.string.refresh_capped, Toast.LENGTH_LONG).show();
+            }, 4000);
+        }
     }
 
     @Override
