@@ -68,7 +68,6 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             // The most used next to fire: reload and grenade; jump and crouch further out.
             new Button(RELOAD, R.string.touch_reload, 215, 62, 34, false),
             new Button(GRENADE, R.string.touch_grenade, 225, 170, 32, false),
-            // Jump acts at once, so it sits in the bottom right corner, where swipes to aim
             // Right edge: crouch in the bottom corner, jump above fire's height. Jump acts at
             // once, so only its own circle counts (no margin around it).
             new Button(CROUCH, R.string.touch_crouch, 36, 36, 27, false),
