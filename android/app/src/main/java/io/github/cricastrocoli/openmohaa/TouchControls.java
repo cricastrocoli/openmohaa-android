@@ -90,6 +90,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     private final SparseArray<Object> fingers = new SparseArray<>();
     private final SparseArray<float[]> lastPos = new SparseArray<>();
     private final SparseArray<float[]> startPos = new SparseArray<>();
+    private final SparseArray<long[]> lastTime = new SparseArray<>();
     private static final float TAP_SLOP_DP = 12;
     private static final long TAP_HOLD_MS = 120;  // how long a tap holds its button down  // further than this, a tap on a button becomes aiming
     private static final Object STICK = new Object(), AIM = new Object();
@@ -178,6 +179,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         fingers.clear();
         lastPos.clear();
         startPos.clear();
+        lastTime.clear();
         for (Button b : buttons) b.pressed = false;
         stickHeld = false;
         try {
@@ -212,7 +214,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
                 fingerDown(id, x, y);
                 break;
             case MotionEvent.ACTION_MOVE:
-                for (int i = 0; i < e.getPointerCount(); i++) fingerMove(e.getPointerId(i), e.getX(i), e.getY(i));
+                for (int i = 0; i < e.getPointerCount(); i++) fingerMove(e.getPointerId(i), e.getX(i), e.getY(i), e.getEventTime());
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
@@ -227,7 +229,8 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     }
 
     private void fingerDown(int id, float x, float y) {
-        lastPos.put(id, new float[]{x, y});
+        lastPos.put(id, new float[]{x, y, 0});  // x, y, smoothed speed (dp/s)
+        lastTime.put(id, new long[]{android.os.SystemClock.uptimeMillis()});
         startPos.put(id, new float[]{x, y});
         Button hit = null;
         for (Button b : buttons) {
@@ -248,7 +251,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         }
     }
 
-    private void fingerMove(int id, float x, float y) {
+    private void fingerMove(int id, float x, float y, long time) {
         Object what = fingers.get(id);
         float[] last = lastPos.get(id);
         if (what == null || last == null) return;
@@ -269,7 +272,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             float d = len > 0 ? len : 1;
             nativeMove(dx / d * m, dy / d * m);
         } else if (what == AIM || (what instanceof Button && ((Button) what).holds)) {
-            nativeAim((x - last[0]) / dp, (y - last[1]) / dp);
+            aim(id, x, y, last, time);
         } else if (what instanceof Button) {
             // A tap button: once the finger drags away, it aims instead (except the menu's).
             Button b = (Button) what;
@@ -278,11 +281,31 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             if (b.action != MENU && sx * sx + sy * sy > TAP_SLOP_DP * TAP_SLOP_DP) {
                 fingers.put(id, AIM);
                 if (fingers.indexOfValue(b) < 0) b.pressed = false;
-                nativeAim((x - last[0]) / dp, (y - last[1]) / dp);
+                aim(id, x, y, last, time);
             }
         }
         last[0] = x;
         last[1] = y;
+    }
+
+    // Aiming with acceleration, like a mouse's: slow drags keep their precision (the base rate,
+    // rp_touch_aim degrees per dp), fast swipes turn more per dp, up to ACCEL_MAX times, so a
+    // quick flick turns the view around in one go.
+    private static final float ACCEL_FROM = 250;   // dp/s: below this, no acceleration
+    private static final float ACCEL_SPAN = 500;   // dp/s more for each extra 1x
+    private static final float ACCEL_MAX = 3.5f;
+
+    private void aim(int id, float x, float y, float[] last, long time) {
+        float dx = (x - last[0]) / dp, dy = (y - last[1]) / dp;
+        long[] t = lastTime.get(id);
+        long dt = t != null ? time - t[0] : 0;
+        if (t != null) t[0] = time;
+        if (dt > 0) {
+            float speed = (float) Math.sqrt(dx * dx + dy * dy) * 1000f / dt;
+            last[2] = last[2] * 0.6f + speed * 0.4f;  // smoothed: touch samples are uneven
+        }
+        float gain = 1f + Math.max(0f, Math.min(ACCEL_MAX - 1f, (last[2] - ACCEL_FROM) / ACCEL_SPAN));
+        nativeAim(dx * gain, dy * gain);
     }
 
     private void fingerUp(int id) {
@@ -290,6 +313,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         fingers.remove(id);
         lastPos.remove(id);
         startPos.remove(id);
+        lastTime.remove(id);
         if (what == STICK) {
             stickHeld = false;
             nativeMove(0, 0);
