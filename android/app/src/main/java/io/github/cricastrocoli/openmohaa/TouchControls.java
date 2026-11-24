@@ -30,7 +30,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
 
     // Actions, as numbered in android_input.cpp.
     private static final int JUMP = 0, USE = 1, RELOAD = 2, ITEM = 3, NEXTWEAPON = 5, ALTFIRE = 6,
-            FIRE = 7, CROUCH = 8, GRENADE = 10, MENU = 14;
+            FIRE = 7, CROUCH = 8, MENU = 14;
 
     private static native void nativeMove(float x, float y);
     private static native void nativeAim(float dxDp, float dyDp);
@@ -50,6 +50,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         // aiming and a swipe doesn't reload by accident.
         final boolean holds;
         boolean pressed;
+        long pressedAt;      // when a held button went down (uptime ms)
         float x, y, r;       // on screen, in pixels
 
         Button(int action, int label, float fromRight, float fromBottom, float radius, boolean holds) {
@@ -64,14 +65,13 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
 
     private final Button[] buttons = {
             new Button(FIRE, R.string.touch_fire, 100, 125, 50, true),
-            new Button(ALTFIRE, R.string.touch_altfire, 124, 240, 32, true),  // equal gaps to use and jump
-            // The most used next to fire: reload and grenade; jump and crouch further out.
+            new Button(ALTFIRE, R.string.touch_altfire, 124, 240, 32, true),  // between use and the right edge
+            // Next to fire: reload and jump. Jump acts at once, so only its own circle counts
+            // (no margin around it). No grenade button: it only picks the grenade, as the
+            // weapon button does. Crouch in the bottom right corner.
             new Button(RELOAD, R.string.touch_reload, 215, 62, 34, false),
-            new Button(GRENADE, R.string.touch_grenade, 225, 170, 32, false),
-            // Right edge: crouch in the bottom corner, jump above fire's height. Jump acts at
-            // once, so only its own circle counts (no margin around it).
+            new Button(JUMP, R.string.touch_jump, 225, 170, 32, true),
             new Button(CROUCH, R.string.touch_crouch, 36, 36, 27, false),
-            new Button(JUMP, R.string.touch_jump, 36, 212, 27, true),
             new Button(USE, R.string.touch_use, 215, 268, 30, false),
             new Button(NEXTWEAPON, R.string.touch_weapon, 72, 345, 30, false),
             new Button(ITEM, R.string.touch_item, 160, 345, 26, false),
@@ -243,7 +243,10 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         if (hit != null) {
             fingers.put(id, hit);
             hit.pressed = true;
-            if (hit.holds) nativeAction(hit.action, true);
+            if (hit.holds) {
+                hit.pressedAt = android.os.SystemClock.uptimeMillis();
+                nativeAction(hit.action, true);
+            }
         } else if (x < getWidth() * 0.42f && !stickHeld) {
             fingers.put(id, STICK);
             stickHeld = true;
@@ -325,7 +328,16 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             if (fingers.indexOfValue(b) < 0) {  // no other finger still on it
                 b.pressed = false;
                 if (b.holds) {
-                    nativeAction(b.action, false);
+                    // Held at least TAP_HOLD_MS: the game reads buttons at its own pace, and a
+                    // quick tap could come and go between two reads (a missed shot or jump).
+                    long left = b.pressedAt + TAP_HOLD_MS - android.os.SystemClock.uptimeMillis();
+                    if (left > 0) {
+                        handler.postDelayed(() -> {
+                            if (fingers.indexOfValue(b) < 0) nativeAction(b.action, false);
+                        }, left);
+                    } else {
+                        nativeAction(b.action, false);
+                    }
                 } else {
                     // A tap: pressed for a moment, long enough for the game to see it (a single
                     // frame isn't always: a jump or a door could be missed).

@@ -117,7 +117,8 @@ typedef struct {
 // The game's actions and their default buttons (Xbox naming, as the Retroid Pocket 6 reports
 // its buttons). Handhelds are awkward to hold buttons down on, so crouch and walk are toggles.
 // The launcher can move them to other buttons with rp_map ("jump=A,use=B,...").
-enum { A_MENU = 14, A_OBJECTIVES = 15, A_PREVWEAPON = 4, A_NEXTWEAPON = 5, A_COUNT = 16 };
+enum { A_JUMP = 0, A_CROUCH = 8, A_MENU = 14, A_OBJECTIVES = 15, A_PREVWEAPON = 4, A_NEXTWEAPON = 5,
+       A_COUNT = 16 };
 static const Action actions[A_COUNT] = {
     {"jump",       B_A,     "+moveup", NULL, NULL},
     {"use",        B_B,     "+use", NULL, NULL},           // doors, mounted guns
@@ -219,6 +220,13 @@ static void actionChanged(int act, bool isDown) {
     if (act == A_MENU) {
         // The game's menu opens with Esc (its key handler), not with a console command.
         escape(isDown);
+        return;
+    }
+    // Jump while crouched (crouch is a toggle): stand up instead, as jumping can't happen from
+    // a crouch here (the held crouch cancels it) and it would look as if jump crouched.
+    if (act == A_JUMP && isDown && toggled[A_CROUCH]) {
+        toggled[A_CROUCH] = false;
+        Cbuf_AddText(va("-%s\n", actions[A_CROUCH].toggle + 1));
         return;
     }
     const Action* a = &actions[act];
