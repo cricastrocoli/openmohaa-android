@@ -64,15 +64,15 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
 
     private final Button[] buttons = {
             new Button(FIRE, R.string.touch_fire, 100, 125, 50, true),
-            new Button(ALTFIRE, R.string.touch_altfire, 124, 240, 32, true),  // equal gaps to use and crouch
+            new Button(ALTFIRE, R.string.touch_altfire, 124, 240, 32, true),  // equal gaps to use and jump
             // The most used next to fire: reload and grenade; jump and crouch further out.
             new Button(RELOAD, R.string.touch_reload, 215, 62, 34, false),
             new Button(GRENADE, R.string.touch_grenade, 225, 170, 32, false),
             // Jump acts at once, so it sits in the bottom right corner, where swipes to aim
-            // rarely start, and only its circle counts (no margin around it).
-            new Button(JUMP, R.string.touch_jump, 36, 36, 27, true),
-            // Crouch in the same column, above the fire button's height.
-            new Button(CROUCH, R.string.touch_crouch, 36, 212, 27, false),
+            // Right edge: crouch in the bottom corner, jump above fire's height. Jump acts at
+            // once, so only its own circle counts (no margin around it).
+            new Button(CROUCH, R.string.touch_crouch, 36, 36, 27, false),
+            new Button(JUMP, R.string.touch_jump, 36, 212, 27, true),
             new Button(USE, R.string.touch_use, 215, 268, 30, false),
             new Button(NEXTWEAPON, R.string.touch_weapon, 72, 345, 30, false),
             new Button(ITEM, R.string.touch_item, 160, 345, 26, false),
