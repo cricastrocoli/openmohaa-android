@@ -160,7 +160,7 @@ Other devices with similar chips should work. Reports are welcome in
 
 ## Installing
 
-1. Download `OpenMoHAA-Android-1.0.0.apk` from [Releases](../../releases) and install it.
+1. Download the latest `OpenMoHAA-Android-….apk` from [Releases](../../releases) and install it.
 2. From your GOG account, download the **Windows** installer of *Medal of Honor: Allied
    Assault War Chest*: the `setup_medal_of_honor_….exe` and the `….bin` files. Keep them all
    in the same folder on the device (for example `Download`).

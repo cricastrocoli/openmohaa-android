@@ -39,8 +39,10 @@ set(USE_OPENAL_DLOPEN ON CACHE BOOL "" FORCE)
 set(USE_HTTP OFF CACHE BOOL "" FORCE)
 set(USE_CODEC_OPUS OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(FLEX_EXECUTABLE /opt/homebrew/opt/flex/bin/flex CACHE FILEPATH "" FORCE)
-set(BISON_EXECUTABLE /opt/homebrew/opt/bison/bin/bison CACHE FILEPATH "" FORCE)
+# flex and bison: macOS ships a bison too old for the engine's parsers, so Homebrew's are
+# preferred where they are (Apple silicon, then Intel); elsewhere (Linux) the ones on the PATH.
+find_program(FLEX_EXECUTABLE flex HINTS /opt/homebrew/opt/flex/bin /usr/local/opt/flex/bin REQUIRED)
+find_program(BISON_EXECUTABLE bison HINTS /opt/homebrew/opt/bison/bin /usr/local/opt/bison/bin REQUIRED)
 
 # Our Android glue (entry point, paths, screen size, the controller aiming hook) joins the
 # client library once OpenMoHAA's CMakeLists has defined it.

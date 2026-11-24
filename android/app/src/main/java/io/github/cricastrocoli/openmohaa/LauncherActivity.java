@@ -746,6 +746,7 @@ public class LauncherActivity extends Activity {
         int[] r = Prefs.RESOLUTIONS[prefs.resolution()];
         i.putExtra(GameActivity.EXTRA_WIDTH, r[0]);
         i.putExtra(GameActivity.EXTRA_HEIGHT, r[1]);
+        i.putExtra(GameActivity.EXTRA_FPS, Prefs.FRAME_RATES[prefs.frameRate()]);
         startActivity(i);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }

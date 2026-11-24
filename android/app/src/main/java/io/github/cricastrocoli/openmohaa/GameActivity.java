@@ -2,7 +2,9 @@ package io.github.cricastrocoli.openmohaa;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import org.libsdl.app.SDLActivity;
 
@@ -13,10 +15,12 @@ public class GameActivity extends SDLActivity {
     public static final String EXTRA_ARGS = "args";
     public static final String EXTRA_WIDTH = "width";
     public static final String EXTRA_HEIGHT = "height";
+    public static final String EXTRA_FPS = "fps";  // the frame rate cap; 0 = unlimited
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestRefreshRate();
         // A lower render resolution: the GPU draws fewer pixels and the display scales them up.
         int w = getIntent().getIntExtra(EXTRA_WIDTH, 0), h = getIntent().getIntExtra(EXTRA_HEIGHT, 0);
         if (w > 0 && h > 0 && mSurface != null) {
@@ -30,6 +34,28 @@ public class GameActivity extends SDLActivity {
                 mSurface.setLayoutParams(lp);
             }
         }
+    }
+
+    // Above 60 FPS, ask Android for the screen's fastest refresh rate at its current resolution:
+    // many phones keep games at 60 Hz unless the app asks, and the extra frames would never
+    // show. Up to 60 FPS, the system's own choice stands (it saves battery).
+    private void requestRefreshRate() {
+        int fps = getIntent().getIntExtra(EXTRA_FPS, 60);
+        if (fps > 0 && fps <= 60) return;
+        Display display = getWindowManager().getDefaultDisplay();
+        Display.Mode current = display.getMode(), best = current;
+        for (Display.Mode m : display.getSupportedModes()) {
+            if (m.getPhysicalWidth() == current.getPhysicalWidth()
+                    && m.getPhysicalHeight() == current.getPhysicalHeight()
+                    && m.getRefreshRate() > best.getRefreshRate()) {
+                best = m;
+            }
+        }
+        WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.preferredDisplayModeId = best.getModeId();
+        getWindow().setAttributes(lp);
+        Log.v("MOHAA", "display mode: " + best.getPhysicalWidth() + "x" + best.getPhysicalHeight()
+                + " @ " + best.getRefreshRate() + " Hz (frame rate cap " + fps + ")");
     }
 
     @Override
