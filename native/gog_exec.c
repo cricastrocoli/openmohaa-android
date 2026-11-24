@@ -4,7 +4,9 @@
 // The installer's files come from Android's file picker as open descriptors: the app may read
 // them, but not open their paths. The program reads them as /proc/self/fd/<n>, through links
 // named like the installer's files (so it finds the .bin parts beside the .exe). Java's
-// ProcessBuilder closes every descriptor but 0-2 in the child, hence this.
+// ProcessBuilder closes every descriptor but 0-2 in the child, hence this. libfdshim.so, from
+// the same folder as the program, is preloaded into it: it reads those files through their
+// descriptors where Android won't let them be opened again by path (see fd_shim.c).
 
 #define _GNU_SOURCE  // pipe2
 #include <errno.h>
@@ -18,6 +20,32 @@
 
 #define FIRST_FD 10
 #define MAX_FDS 32
+
+extern char **environ;
+
+// The environment for the program: this process's, plus LD_PRELOAD of libfdshim.so from the
+// program's folder. Built before fork (the child may only make async-signal-safe calls).
+static char **program_environment(const char *program) {
+    size_t n = 0;
+    while (environ[n]) n++;
+    char **envp = calloc(n + 2, sizeof(char *));
+    if (!envp) return NULL;
+    size_t k = 0;
+    for (size_t i = 0; i < n; i++) {
+        if (strncmp(environ[i], "LD_PRELOAD=", 11) != 0) envp[k++] = environ[i];
+    }
+    const char *slash = strrchr(program, '/');
+    size_t dir = slash ? (size_t)(slash - program) : 0;
+    char *preload = malloc(11 + dir + 16 + 1);
+    if (preload) {
+        memcpy(preload, "LD_PRELOAD=", 11);
+        memcpy(preload + 11, program, dir);
+        strcpy(preload + 11 + dir, dir ? "/libfdshim.so" : "libfdshim.so");
+        envp[k++] = preload;
+    }
+    envp[k] = NULL;
+    return envp;
+}
 
 // int[]{pid, fd of the program's output (stdout and stderr)}, or null.
 JNIEXPORT jintArray JNICALL
@@ -43,9 +71,10 @@ Java_io_github_cricastrocoli_openmohaa_GogInstaller_spawn(JNIEnv *env, jclass cl
     (*env)->GetIntArrayRegion(env, jfds, 0, nfds, fds);
     for (int i = 0; i < nfds; i++) high[i] = fcntl(fds[i], F_DUPFD_CLOEXEC, 200);
 
+    char **envp = program_environment(argv[0]);
     int out[2];
     pid_t pid = -1;
-    if (pipe2(out, O_CLOEXEC) == 0) {
+    if (envp && pipe2(out, O_CLOEXEC) == 0) {
         pid = fork();
         if (pid == 0) {
             // Child: only async-signal-safe calls until exec.
@@ -54,7 +83,7 @@ Java_io_github_cricastrocoli_openmohaa_GogInstaller_spawn(JNIEnv *env, jclass cl
             for (int i = 0; i < nfds; i++) dup2(high[i], FIRST_FD + i);  // dup2 clears close-on-exec
             int devnull = open("/dev/null", O_RDONLY);
             if (devnull >= 0) dup2(devnull, 0);
-            execv(argv[0], argv);
+            execve(argv[0], argv, envp);
             _exit(127);
         }
         close(out[1]);
@@ -63,6 +92,12 @@ Java_io_github_cricastrocoli_openmohaa_GogInstaller_spawn(JNIEnv *env, jclass cl
     for (int i = 0; i < nfds; i++) if (high[i] >= 0) close(high[i]);
     for (int i = 0; i < argc; i++) free(argv[i]);
     free(argv);
+    if (envp) {
+        for (size_t i = 0; envp[i]; i++) {
+            if (strncmp(envp[i], "LD_PRELOAD=", 11) == 0) free(envp[i]);
+        }
+        free(envp);
+    }
     if (pid < 0) return NULL;
 
     jintArray r = (*env)->NewIntArray(env, 2);

@@ -58,4 +58,7 @@ cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} CALL mohaa_android_finish)
 add_library(gogexec SHARED ${NATIVE_DIR}/gog_exec.c)
 target_link_libraries(gogexec PRIVATE log)
 set_target_properties(gogexec PROPERTIES PREFIX "lib")  # OpenMoHAA drops the prefix; Android needs it
+add_library(fdshim SHARED ${NATIVE_DIR}/fd_shim.c)  # preloaded into innoextract (fd_shim.c)
+target_link_libraries(fdshim PRIVATE dl)
+set_target_properties(fdshim PROPERTIES PREFIX "lib")
 
