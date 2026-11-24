@@ -44,8 +44,8 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     private static final class Button {
         final int action, label;
         final float fromRight, fromBottom, radius;
-        // Held buttons (fire, aim) act while the finger is on them, and the finger can turn
-        // the view at the same time. The others act on a tap (on lifting the finger): a finger
+        // Held buttons (fire, aim, jump: they must react at once) act while the finger is on
+        // them, and the finger can turn the view at the same time. The others act on a tap (on lifting the finger): a finger
         // that drags from them turns the view instead, so the buttons don't take space from
         // aiming and a swipe doesn't reload by accident.
         final boolean holds;
@@ -68,7 +68,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             // The most used next to fire: reload and grenade; jump and crouch further out.
             new Button(RELOAD, R.string.touch_reload, 215, 62, 34, false),
             new Button(GRENADE, R.string.touch_grenade, 225, 170, 32, false),
-            new Button(JUMP, R.string.touch_jump, 318, 62, 30, false),
+            new Button(JUMP, R.string.touch_jump, 318, 62, 30, true),  // instant, like fire
             new Button(USE, R.string.touch_use, 215, 268, 30, false),
             new Button(CROUCH, R.string.touch_crouch, 318, 160, 28, false),
             new Button(NEXTWEAPON, R.string.touch_weapon, 72, 345, 30, false),
@@ -90,7 +90,8 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     private final SparseArray<Object> fingers = new SparseArray<>();
     private final SparseArray<float[]> lastPos = new SparseArray<>();
     private final SparseArray<float[]> startPos = new SparseArray<>();
-    private static final float TAP_SLOP_DP = 12;  // further than this, a tap on a button becomes aiming
+    private static final float TAP_SLOP_DP = 12;
+    private static final long TAP_HOLD_MS = 120;  // how long a tap holds its button down  // further than this, a tap on a button becomes aiming
     private static final Object STICK = new Object(), AIM = new Object();
     private float stickX, stickY, knobX, knobY;  // the stick's centre and the thumb, pixels
     private boolean stickHeld;
@@ -299,8 +300,12 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
                 if (b.holds) {
                     nativeAction(b.action, false);
                 } else {
-                    nativeAction(b.action, true);  // a tap: pressed for a frame
-                    nativeAction(b.action, false);
+                    // A tap: pressed for a moment, long enough for the game to see it (a single
+                    // frame isn't always: a jump or a door could be missed).
+                    nativeAction(b.action, true);
+                    handler.postDelayed(() -> {
+                        if (fingers.indexOfValue(b) < 0) nativeAction(b.action, false);
+                    }, TAP_HOLD_MS);
                 }
             }
         }
