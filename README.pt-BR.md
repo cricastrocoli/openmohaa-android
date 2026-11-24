@@ -29,6 +29,14 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
 - 🆕 **Spearhead e Breakthrough**: escolha a campanha na tela inicial (LB / RB).
 - Allied Assault, Spearhead e Breakthrough num só app, os três testados.
 
+<p>
+  <img src="docs/screenshots/game-1.jpg" width="32%" alt="M1 Garand à noite">
+  <img src="docs/screenshots/game-2.jpg" width="32%" alt="MP40 diante de uma base fortificada">
+  <img src="docs/screenshots/game-3.jpg" width="32%" alt="Cena num jipe">
+</p>
+
+*Rodando no Retroid Pocket 6 (com a tradução para o português).*
+
 ## Novidades deste port
 
 Tudo abaixo foi feito para esta versão Android:

@@ -32,6 +32,14 @@ computer needed.
 - 🆕 **Spearhead and Breakthrough**: pick the campaign on the home page (LB / RB).
 - Allied Assault, Spearhead and Breakthrough in one app, all three tested.
 
+<p>
+  <img src="docs/screenshots/game-1.jpg" width="32%" alt="M1 Garand at night">
+  <img src="docs/screenshots/game-2.jpg" width="32%" alt="MP40 outside a fortified base">
+  <img src="docs/screenshots/game-3.jpg" width="32%" alt="Cutscene in a jeep">
+</p>
+
+*Running on a Retroid Pocket 6 (with the Brazilian Portuguese translation mod).*
+
 ## New in this port
 
 Everything below was made for this Android version:
