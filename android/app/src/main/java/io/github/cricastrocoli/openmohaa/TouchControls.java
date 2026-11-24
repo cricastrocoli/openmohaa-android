@@ -68,7 +68,9 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             // The most used next to fire: reload and grenade; jump and crouch further out.
             new Button(RELOAD, R.string.touch_reload, 215, 62, 34, false),
             new Button(GRENADE, R.string.touch_grenade, 225, 170, 32, false),
-            new Button(JUMP, R.string.touch_jump, 318, 62, 30, true),  // instant, like fire
+            // Jump acts at once, so it sits in the bottom right corner, where swipes to aim
+            // rarely start, and only its circle counts (no margin around it).
+            new Button(JUMP, R.string.touch_jump, 36, 36, 27, true),
             new Button(USE, R.string.touch_use, 215, 268, 30, false),
             new Button(CROUCH, R.string.touch_crouch, 318, 160, 28, false),
             new Button(NEXTWEAPON, R.string.touch_weapon, 72, 345, 30, false),
@@ -235,7 +237,8 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         Button hit = null;
         for (Button b : buttons) {
             float dx = x - b.x, dy = y - b.y;
-            if (dx * dx + dy * dy <= (b.r * 1.15f) * (b.r * 1.15f)) { hit = b; break; }
+            float reach = b.r * (b.action == JUMP ? 1f : 1.15f);
+            if (dx * dx + dy * dy <= reach * reach) { hit = b; break; }
         }
         if (hit != null) {
             fingers.put(id, hit);
