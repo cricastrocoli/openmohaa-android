@@ -20,8 +20,8 @@ computer needed.
   three games (2.7 GB).
 - 🆕 **Up to 120 FPS** on 120 Hz screens, with 30, 60 (default), 90, 120 or unlimited.
 - 🆕 **The M1 Garand rifle reloads at any time.** In the original game it only reloads when
-  its clip is empty; here it reloads like the other weapons, without losing rounds (optional,
-  in the campaign).
+  its clip is empty; here it reloads like the other weapons, without losing rounds. Off by
+  default, to keep the original behaviour; switch it on in **Settings** (campaign only).
 - 🆕 **Refined analog aiming** for controllers: radial dead zone, response curve and a turn
   boost when the stick is held at its edge (for quick turns), with adjustable speed.
 - 🆕 **Remappable buttons**: any action on any button, right in the launcher.
@@ -68,7 +68,7 @@ Everything below was made for this Android version:
 | Frame rate | 30, **60** (default), 90, **120**, unlimited |
 | Aim speed | 50% to 150% |
 | Invert vertical aim | On / off |
-| Reload the rifle at any time | On (default) / off |
+| Reload the rifle at any time | On / **off** (default) |
 
 ### Controls
 

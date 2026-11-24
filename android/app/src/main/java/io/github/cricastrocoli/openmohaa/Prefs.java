@@ -38,7 +38,7 @@ public final class Prefs {
     public void setAimSpeed(int i) { p.edit().putInt("aimSpeed", i).apply(); }
 
     // The M1 Garand can be reloaded before its clip is empty (single player).
-    public boolean garandReload() { return p.getBoolean("garandReload", true); }
+    public boolean garandReload() { return p.getBoolean("garandReload", false); }
     public void setGarandReload(boolean b) { p.edit().putBoolean("garandReload", b).apply(); }
 
     public boolean invertAim() { return p.getBoolean("invertAim", false); }

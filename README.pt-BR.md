@@ -18,8 +18,8 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
   sozinho. No Retroid Pocket 6 isso leva cerca de **70 segundos** para os três jogos (2,7 GB).
 - 🆕 **Até 120 FPS** em telas de 120 Hz, com opções de 30, 60 (padrão), 90, 120 ou sem limite.
 - 🆕 **O rifle M1 Garand recarrega a qualquer momento.** No jogo original ele só recarrega
-  com o pente vazio; aqui ele recarrega como as outras armas, sem perder balas (opcional, na
-  campanha).
+  com o pente vazio; aqui ele recarrega como as outras armas, sem perder balas. Vem desligado,
+  para manter o comportamento original; ative em **Configurações** (só na campanha).
 - 🆕 **Mira analógica refinada** para o controle: zona morta radial, curva de resposta e
   aceleração ao manter o analógico no limite (para virar rápido), com velocidade ajustável.
 - 🆕 **Botões configuráveis**: qualquer ação em qualquer botão, direto no launcher.
@@ -65,7 +65,7 @@ Tudo abaixo foi feito para esta versão Android:
 | Taxa de quadros | 30, **60** (padrão), 90, **120**, sem limite |
 | Velocidade da mira | 50% a 150% |
 | Inverter mira vertical | Ligado / desligado |
-| Recarregar o rifle a qualquer momento | Ligado (padrão) / desligado |
+| Recarregar o rifle a qualquer momento | Ligado / **desligado** (padrão) |
 
 ### Controles
 
