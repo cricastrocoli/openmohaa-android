@@ -439,6 +439,10 @@ public class LauncherActivity extends Activity {
             public void change(int s) { prefs.setScanlines(wrap(prefs.scanlines() + s, names.length)); }
         });
         section(list, R.string.section_gameplay);
+        option(list, R.string.setting_aimassist, R.string.setting_aimassist_desc, new Choice() {
+            public String label() { return getString(prefs.aimAssist() ? R.string.on : R.string.off); }
+            public void change(int s) { prefs.setAimAssist(!prefs.aimAssist()); }
+        });
         option(list, R.string.setting_aim, R.string.setting_aim_desc, new Choice() {
             public String label() { return Prefs.AIM_SPEEDS[prefs.aimSpeed()] + "%"; }
             public void change(int s) { prefs.setAimSpeed(Math.max(0, Math.min(Prefs.AIM_SPEEDS.length - 1, prefs.aimSpeed() + s))); }
@@ -454,10 +458,6 @@ public class LauncherActivity extends Activity {
         option(list, R.string.setting_invert, 0, new Choice() {
             public String label() { return getString(prefs.invertAim() ? R.string.on : R.string.off); }
             public void change(int s) { prefs.setInvertAim(!prefs.invertAim()); }
-        });
-        option(list, R.string.setting_aimassist, R.string.setting_aimassist_desc, new Choice() {
-            public String label() { return getString(prefs.aimAssist() ? R.string.on : R.string.off); }
-            public void change(int s) { prefs.setAimAssist(!prefs.aimAssist()); }
         });
         option(list, R.string.setting_garand, R.string.setting_garand_desc, new Choice() {
             public String label() { return getString(prefs.garandReload() ? R.string.on : R.string.off); }
