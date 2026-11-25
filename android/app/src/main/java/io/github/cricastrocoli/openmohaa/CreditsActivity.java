@@ -27,14 +27,15 @@ public class CreditsActivity extends Activity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean done;
-    private float uiScale = 1f;  // as in the launcher: smaller on screens shorter than 450 dp
+    private float uiScale = 1f;  // as in the launcher: smaller on screens under 450 x 820 dp
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         android.util.DisplayMetrics m = new android.util.DisplayMetrics();
         getWindowManager().getDefaultDisplay().getRealMetrics(m);
-        uiScale = Math.max(0.7f, Math.min(1f, Math.min(m.widthPixels, m.heightPixels) / m.density / 450f));
+        uiScale = Math.max(0.7f, Math.min(1f, Math.min(Math.min(m.widthPixels, m.heightPixels) / m.density / 450f,
+                Math.max(m.widthPixels, m.heightPixels) / m.density / 820f)));
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
         column.setGravity(Gravity.CENTER);

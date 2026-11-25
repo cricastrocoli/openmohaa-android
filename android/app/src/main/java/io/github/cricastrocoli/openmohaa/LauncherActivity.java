@@ -89,10 +89,11 @@ public class LauncherActivity extends Activity {
         getWindowManager().getDefaultDisplay().getRealMetrics(m);
         screenW = Math.max(m.widthPixels, m.heightPixels);
         screenH = Math.min(m.widthPixels, m.heightPixels);
-        // The launcher is laid out for a handheld's screen, about 450 dp tall (the Retroid
-        // Pocket 6). Shorter ones, such as a phone held sideways (a Galaxy S23 is 360 dp), get
-        // the whole interface scaled down to fit, rather than cut off at the bottom.
-        uiScale = Math.max(0.7f, Math.min(1f, screenH / m.density / 450f));
+        // The launcher is laid out for a handheld's screen, about 450 dp tall and 820 dp wide
+        // (the Retroid Pocket 6). Shorter ones, such as a phone held sideways (a Galaxy S23 is
+        // 360 dp), and narrower ones, such as a 4:3 Retroid Pocket Nova (640 dp), get the whole
+        // interface scaled down to fit, rather than cut off at the bottom or the right.
+        uiScale = Math.max(0.7f, Math.min(1f, Math.min(screenH / m.density / 450f, screenW / m.density / 820f)));
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.rgb(14, 16, 12));
