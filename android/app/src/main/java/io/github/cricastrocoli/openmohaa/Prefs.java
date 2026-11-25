@@ -95,7 +95,9 @@ public final class Prefs {
             {"1", "GL_LINEAR_MIPMAP_NEAREST", "0", "2", "0", "0.6", "8", "0", "0", "0", "0.4", "64", "4"},
             {"0", "GL_LINEAR_MIPMAP_LINEAR", "0", "2", "0", "0.9", "4", "1", "0", "0", "0.7", "128", "7"},
             {"0", "GL_LINEAR_MIPMAP_LINEAR", "0", "2", "0", "1.1", "3", "1", "0", "0", "1.0", "256", "10"},
-            {"0", "GL_LINEAR_MIPMAP_LINEAR", "1", "8", "4", "1.6", "2", "1", "1", "1", "1.0", "512", "16"},
+            // (No multisample antialiasing: requested through gl4es on Android it showed no
+            // difference on a Retroid Pocket Nova, only a cost.)
+            {"0", "GL_LINEAR_MIPMAP_LINEAR", "1", "8", "0", "1.6", "2", "1", "1", "1", "1.0", "512", "16"},
     };
 
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }

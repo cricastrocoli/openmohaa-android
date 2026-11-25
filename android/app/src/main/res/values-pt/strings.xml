@@ -31,7 +31,7 @@
     <string name="setting_resolution">Resolução</string>
     <string name="setting_resolution_desc">Menor é mais leve e gasta menos bateria; a imagem é ampliada para a tela.</string>
     <string name="setting_graphics">Qualidade gráfica</string>
-    <string name="setting_graphics_desc">Menor é mais leve para aparelhos fracos: detalhe das texturas, filtragem, antialiasing, sombras, efeitos. Personalizado mantém o que você ajustou nos menus do próprio jogo.</string>
+    <string name="setting_graphics_desc">Menor é mais leve para aparelhos fracos: detalhe das texturas, filtragem, sombras, detalhe à distância, efeitos. Personalizado mantém o que você ajustou nos menus do próprio jogo.</string>
     <string name="graphics_custom">Personalizado</string>
     <string name="graphics_low">Baixo</string>
     <string name="graphics_medium">Médio</string>
