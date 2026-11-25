@@ -183,6 +183,18 @@ public class LauncherActivity extends Activity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        ((android.hardware.input.InputManager) getSystemService(INPUT_SERVICE)).registerInputDeviceListener(devices, ui);
+    }
+
+    @Override
+    protected void onStop() {
+        ((android.hardware.input.InputManager) getSystemService(INPUT_SERVICE)).unregisterInputDeviceListener(devices);
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         unregisterReceiver(installStatus);
         super.onDestroy();
@@ -211,6 +223,7 @@ public class LauncherActivity extends Activity {
         capturing = -1;
         defaultFocus = null;
         pageHolder.removeAllViews();
+        backArrow = null;
         View v;
         switch (p) {
             case SETTINGS: v = settingsPage(); break;
@@ -1249,11 +1262,49 @@ public class LauncherActivity extends Activity {
         LinearLayout list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         list.setPadding(0, dp(14), dp(6), dp(10));
+        LinearLayout head = row();
+        // A back arrow for touch (no controller: B and the D-pad aren't there, and Android's
+        // back gesture isn't obvious to everyone); it goes when a controller comes.
+        TextView back = text("‹", 34, GOLD, true);
+        back.setPadding(dp(8), 0, dp(14), dp(6));
+        back.setContentDescription(getString(R.string.hint_back));
+        back.setOnClickListener(v -> goBack());
+        back.setVisibility(controllerConnected() ? View.GONE : View.VISIBLE);
+        backArrow = back;
+        head.addView(back);
         TextView t = text(getString(title), 28, INK, true);
         t.setPadding(dp(4), 0, 0, dp(8));
-        list.addView(t);
+        head.addView(t);
+        list.addView(head);
         return list;
     }
+
+    private View backArrow;  // the current page's, if any
+
+    private boolean controllerConnected() {
+        android.hardware.input.InputManager im = (android.hardware.input.InputManager) getSystemService(INPUT_SERVICE);
+        for (int id : im.getInputDeviceIds()) {
+            android.view.InputDevice d = im.getInputDevice(id);
+            if (d == null || d.isVirtual()) continue;
+            int src = d.getSources();
+            if ((src & android.view.InputDevice.SOURCE_GAMEPAD) == android.view.InputDevice.SOURCE_GAMEPAD
+                    || (src & android.view.InputDevice.SOURCE_JOYSTICK) == android.view.InputDevice.SOURCE_JOYSTICK) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Controllers coming and going: the back arrow follows.
+    private final android.hardware.input.InputManager.InputDeviceListener devices =
+            new android.hardware.input.InputManager.InputDeviceListener() {
+                private void update() {
+                    if (backArrow != null) backArrow.setVisibility(controllerConnected() ? View.GONE : View.VISIBLE);
+                }
+                public void onInputDeviceAdded(int id) { update(); }
+                public void onInputDeviceRemoved(int id) { update(); }
+                public void onInputDeviceChanged(int id) { update(); }
+            };
 
     private ScrollView scroll(View content) {
         ScrollView s = new ScrollView(this);
