@@ -20,6 +20,7 @@
 //   rp_move_deadzone            left stick dead zone (0.15)
 //   rp_cursor_speed             menu pointer speed at full deflection, pixels/second (1400)
 //   rp_touch_aim                touch aiming: degrees turned per dp the finger moves (0.20)
+//   rp_aim_aspect               1: aim speed follows the picture's aspect ratio (1), see aspectScale
 //   rp_aimassist                aim assist in single player, set by the launcher (0)
 //   rp_aa_slow                  aim speed with the crosshair over an enemy, as a fraction (0.75)
 //   rp_aa_fulldist / rp_aa_maxdist  full help up to this distance, fading to none at the
@@ -461,6 +462,19 @@ static float rampHeld;  // seconds the aim stick has been at full deflection
 
 // Called from CL_CreateCmd after the keyboard, mouse and joystick: movement and aiming.
 // Zoomed weapons scale the turn down as they do for the mouse.
+// The game widens its horizontal view on wider pictures (the vertical one stays), so a turn
+// of so many degrees crosses less of a wide screen and more of a 4:3 one: the same aim speed
+// felt slower on 19.5:9 and faster on 4:3. Aiming is scaled by the picture's horizontal view
+// against 16:9's, so it feels the same on any aspect ratio (whatever the device).
+static float aspectScale(void) {
+    static cvar_t* on = Cvar_Get("rp_aim_aspect", "1", 0);
+    float w = cls.glconfig.vidWidth, h = cls.glconfig.vidHeight;
+    if (!on->integer || w <= 0 || h <= 0) return 1.0f;
+    const float half = tanf(DEG2RAD(80.0f / 2));  // the game's 80 degree view at 4:3
+    float fov = atanf(half * (w / h) * 0.75f), fov169 = atanf(half * (16.0f / 9) * 0.75f);
+    return fov / fov169;
+}
+
 static float zoomScale(void) {
     if (cge && cge->CG_SensitivityScale() >= 0.0f) return cge->CG_SensitivityScale();
     return 1.0f;
@@ -569,13 +583,13 @@ static void touchMove(usercmd_t* cmd, float slow) {
     SDL_AtomicUnlock(&touchLock);
     if (gy || gp) {
         // Slower while zoomed, like the other aiming; aim assist's friction applies too.
-        float z = zoomScale() * slow;
+        float z = zoomScale() * aspectScale() * slow;
         cl.viewangles[YAW] += gy * z;
         cl.viewangles[PITCH] += (aimInvert->integer ? -gp : gp) * z;
     }
     if (mx || my) addMove(cmd, mx, my);
     if (ax || ay) {
-        float deg = touchAim->value * aimScale->value * zoomScale() * slow;
+        float deg = touchAim->value * aimScale->value * zoomScale() * aspectScale() * slow;
         cl.viewangles[YAW] -= ax * deg;
         cl.viewangles[PITCH] += (aimInvert->integer ? -ay : ay) * deg;
     }
@@ -627,7 +641,7 @@ extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
         rampHeld = 0;
     }
 
-    float zoom = zoomScale();
+    float zoom = zoomScale() * aspectScale();
 
     float yawRate = aimYaw->value * aimScale->value * curved * (1.0f + boost) * zoom * slow;
     float pitchRate = aimPitch->value * aimScale->value * curved * zoom * slow;
