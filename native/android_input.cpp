@@ -391,7 +391,14 @@ static Uint32 lastCursorTime;
 
 // Called once a frame from Com_Frame, before events: the controller's buttons, and the menu
 // pointer.
+static SDL_atomic_t keyboardToggle;
+
 extern "C" void IN_Android_Commands(void) {
+    if (SDL_AtomicSet(&keyboardToggle, 0)) {
+        // (SDL counts text input as active from the start, so ask whether the keyboard shows.)
+        SDL_Window* w = SDL_GL_GetCurrentWindow();
+        if (w && SDL_IsScreenKeyboardShown(w)) SDL_StopTextInput(); else SDL_StartTextInput();
+    }
     registerCvars();
     static bool watching;
     if (!watching) {
@@ -647,6 +654,14 @@ Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeMenuTouch(JNIEnv*, jc
         tapCount++;
     }
     SDL_AtomicUnlock(&touchLock);
+}
+
+// The keyboard button: opens or closes Android's keyboard (SDL text input) on the game's
+// thread; typed keys reach the game as key presses and text, like a real keyboard.
+
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeToggleKeyboard(JNIEnv*, jclass) {
+    SDL_AtomicSet(&keyboardToggle, 1);
 }
 
 // Lets go of everything touch holds (a controller came, the controls were hidden).

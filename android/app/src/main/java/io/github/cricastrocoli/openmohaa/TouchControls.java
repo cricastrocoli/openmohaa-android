@@ -46,6 +46,24 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     private static native void nativeMenuTouch(float x, float y, boolean down);
     private static native void nativeReleaseAll();
     private static native boolean nativeInMenu();
+    private static native void nativeToggleKeyboard();
+
+    // The keyboard button: at the left edge, halfway down (clear of menus' fields and of the
+    // HUD); in menus too (to type a server address, a name, or press keys when binding the
+    // game's own controls).
+    private float kbX, kbY, kbR;
+    private boolean kbPressed;
+    private int kbFinger = -1;
+
+    private static int fingersExcept(MotionEvent e, int id) {
+        int n = 0;
+        for (int i = 0; i < e.getPointerCount(); i++) if (e.getPointerId(i) != id) n++;
+        return n;
+    }
+
+    private boolean keyboardShown() {
+        return mode != NEVER && (inMenu || controlsShown());
+    }
 
     // A button: its action, its label, and where it sits, in dp from the screen's right and
     // bottom edges (the menu button: top centre, clear of the compass), with its radius.
@@ -206,6 +224,26 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         int index = e.getActionIndex();
         int id = e.getPointerId(index);
         float x = e.getX(index), y = e.getY(index);
+
+        // The keyboard button (any finger): opens or closes Android's keyboard on release.
+        if (keyboardShown()) {
+            float kx = x - kbX, ky = y - kbY;
+            boolean on = kx * kx + ky * ky <= kbR * kbR * 1.3f;
+            if ((action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) && on) {
+                kbPressed = true;
+                kbFinger = id;
+                invalidate();
+                return true;
+            }
+            if (kbPressed && id == kbFinger
+                    && (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP)) {
+                kbPressed = false;
+                invalidate();
+                if (on) nativeToggleKeyboard();
+                return true;
+            }
+            if (kbPressed && action == MotionEvent.ACTION_MOVE && fingersExcept(e, kbFinger) == 0) return true;
+        }
 
         if (inMenu) {
             // A menu: the first finger is the mouse, pressed where it lands, released where it
@@ -371,6 +409,9 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         unit = dp * Math.min(1f, h / dp / 430f);
+        kbR = 22 * unit;
+        kbX = (22 + 12) * unit;
+        kbY = h / 2f;
         for (Button b : buttons) {
             b.r = b.radius * unit;
             if (b.fromRight < 0) {  // the menu button: top centre
@@ -385,6 +426,23 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
 
     @Override
     protected void onDraw(Canvas c) {
+        if (keyboardShown()) {
+            // The keyboard button: a small key-cap with three rows of dots.
+            fill.setColor(kbPressed ? Color.argb(120, 200, 160, 70) : Color.argb(55, 20, 22, 16));
+            c.drawCircle(kbX, kbY, kbR, fill);
+            ring.setColor(kbPressed ? Color.argb(220, 230, 190, 90) : Color.argb(110, 235, 228, 205));
+            c.drawCircle(kbX, kbY, kbR, ring);
+            fill.setColor(Color.argb(170, 235, 228, 205));
+            float d = kbR * 0.26f, s = kbR * 0.09f;
+            for (int row = -1; row <= 1; row++) {
+                int n = row == 1 ? 1 : 3;
+                for (int k = 0; k < n; k++) {
+                    float px = kbX + (n == 1 ? 0 : (k - 1) * d), py = kbY + row * d * 0.85f;
+                    if (row == 1) c.drawRect(kbX - d, py - s, kbX + d, py + s, fill);
+                    else c.drawCircle(px, py, s * 1.1f, fill);
+                }
+            }
+        }
         if (!controlsShown()) return;
         for (Button b : buttons) {
             fill.setColor(b.pressed ? Color.argb(120, 200, 160, 70) : Color.argb(55, 20, 22, 16));
