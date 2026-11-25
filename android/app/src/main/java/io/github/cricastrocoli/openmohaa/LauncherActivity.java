@@ -902,8 +902,8 @@ public class LauncherActivity extends Activity {
 
     private void play() {
         Intent i = new Intent(this, CreditsActivity.class);
-        i.putExtra(GameActivity.EXTRA_ARGS, prefs.gameArguments());
-        int[] r = Prefs.RESOLUTIONS[prefs.resolution()];
+        i.putExtra(GameActivity.EXTRA_ARGS, prefs.gameArguments(screenW, screenH));
+        int[] r = prefs.renderSize(screenW, screenH);
         i.putExtra(GameActivity.EXTRA_WIDTH, r[0]);
         i.putExtra(GameActivity.EXTRA_HEIGHT, r[1]);
         i.putExtra(GameActivity.EXTRA_FPS, Prefs.FRAME_RATES[prefs.frameRate()]);

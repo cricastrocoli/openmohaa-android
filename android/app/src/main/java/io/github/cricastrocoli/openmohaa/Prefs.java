@@ -111,10 +111,22 @@ public final class Prefs {
     public void setGraphics(int g) { p.edit().putInt("graphics", g).apply(); }
 
     // Engine arguments ("+set name value" ...).
-    public String[] gameArguments() {
-        List<String> a = new ArrayList<>();
+    // The game's render size: the resolution setting (the screen's own for "native"), made
+    // 4:3 by the aspect option on a wider screen ({0, 0} = the screen's own, nothing to set).
+    public int[] renderSize(int screenW, int screenH) {
         int[] r = RESOLUTIONS[resolution()];
+        int w = r[0] != 0 ? r[0] : screenW, h = r[0] != 0 ? r[1] : screenH;
+        boolean four3 = aspect() == 1 && w * 3 > h * 4;
+        if (four3) w = (h * 4 / 3) & ~1;
+        return r[0] == 0 && !four3 ? new int[]{0, 0} : new int[]{w, h};
+    }
+
+    public String[] gameArguments(int screenW, int screenH) {
+        List<String> a = new ArrayList<>();
+        int[] r = renderSize(screenW, screenH);
         if (r[0] != 0) {
+            // The engine must be told the size too, or it renders the whole screen's width
+            // into the (narrower) 4:3 picture, cut off at the right.
             set(a, "r_mode", "-1");
             set(a, "r_customwidth", Integer.toString(r[0]));
             set(a, "r_customheight", Integer.toString(r[1]));

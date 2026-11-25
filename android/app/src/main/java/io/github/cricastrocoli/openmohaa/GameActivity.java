@@ -84,8 +84,9 @@ public class GameActivity extends SDLActivity {
             getWindowManager().getDefaultDisplay().getRealMetrics(m);
             int sw = Math.max(m.widthPixels, m.heightPixels), sh = Math.min(m.widthPixels, m.heightPixels);
             if (sw * 3 > sh * 4) {  // wider than 4:3
-                int rh = h > 0 ? h : sh;
-                mSurface.getHolder().setFixedSize(rh * 4 / 3, rh);
+                // The render size the launcher gave the engine (4:3 already), else the screen's.
+                int rh = h > 0 ? h : sh, rw = w > 0 ? w : (rh * 4 / 3) & ~1;
+                mSurface.getHolder().setFixedSize(rw, rh);
                 android.widget.RelativeLayout.LayoutParams lp =
                         new android.widget.RelativeLayout.LayoutParams(sh * 4 / 3, sh);
                 lp.addRule(android.widget.RelativeLayout.CENTER_IN_PARENT);
