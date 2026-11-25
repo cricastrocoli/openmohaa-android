@@ -239,7 +239,13 @@ public class LauncherActivity extends Activity {
 
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.setGravity(Gravity.CENTER_VERTICAL);
+        // A 4:3 screen (the Retroid Pocket Nova) has height to spare once the interface is
+        // scaled to its width: the page starts near the header and the cards grow taller,
+        // rather than the whole page floating in the middle with gaps above and below.
+        boolean tall = screenW < screenH * 1.6f;
+        float grow = tall ? 1.45f : 1f;
+        page.setGravity(tall ? Gravity.TOP : Gravity.CENTER_VERTICAL);
+        if (tall) page.setPadding(0, dp(14), 0, 0);
 
         page.addView(text(getString(ready ? R.string.home_ready : R.string.home_missing), 34, INK, true));
         TextView sub = text(ready ? summary() : getString(R.string.home_missing_sub), 15, INK_DIM, false);
@@ -263,7 +269,7 @@ public class LauncherActivity extends Activity {
                 ready ? "▶" : "⤓", true, v -> {
                     if (GameData.installed(this)[0]) play(); else showPage(Page.FILES);
                 });
-        grid.addView(main, weighted(dp(210), 1.05f, 0, dp(14)));
+        grid.addView(main, weighted(dp(Math.round(210 * grow)), 1.05f, 0, dp(14)));
 
         LinearLayout right = new LinearLayout(this);
         right.setOrientation(LinearLayout.VERTICAL);
@@ -272,13 +278,13 @@ public class LauncherActivity extends Activity {
         top.setClipChildren(false);
         bottom.setClipChildren(false);
         top.addView(card(getString(R.string.settings), getString(R.string.settings_sub), "⚙", false,
-                v -> showPage(Page.SETTINGS)), weighted(dp(98), 1, 0, dp(14)));
+                v -> showPage(Page.SETTINGS)), weighted(dp(Math.round(98 * grow)), 1, 0, dp(14)));
         top.addView(card(getString(R.string.controls), getString(R.string.controls_sub), "✥", false,
-                v -> showPage(Page.CONTROLS)), weighted(dp(98), 1, 0, 0));
+                v -> showPage(Page.CONTROLS)), weighted(dp(Math.round(98 * grow)), 1, 0, 0));
         bottom.addView(card(getString(R.string.files), getString(R.string.files_sub), "▤", false,
-                v -> showPage(Page.FILES)), weighted(dp(98), 1, 0, dp(14)));
+                v -> showPage(Page.FILES)), weighted(dp(Math.round(98 * grow)), 1, 0, dp(14)));
         bottom.addView(card(getString(R.string.mods), getString(R.string.mods_sub), "✚", false,
-                v -> showPage(Page.MODS)), weighted(dp(98), 1, 0, 0));
+                v -> showPage(Page.MODS)), weighted(dp(Math.round(98 * grow)), 1, 0, 0));
         right.addView(top);
         LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
