@@ -417,6 +417,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         kbR = 22 * unit;
         kbX = (22 + 12) * unit;
         kbY = h / 2f;
+        avoidCutout();
         for (Button b : buttons) {
             b.r = b.radius * unit;
             if (b.fromRight < 0) {  // the menu button: top centre
@@ -425,6 +426,25 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             } else {
                 b.x = w - b.fromRight * unit;
                 b.y = h - b.fromBottom * unit;
+            }
+        }
+    }
+
+    // A phone's front camera sits in the screen, often at the left edge halfway down in
+    // landscape (a Galaxy S23): the keyboard button moves above it rather than under it.
+    private void avoidCutout() {
+        if (android.os.Build.VERSION.SDK_INT < 28) return;
+        android.view.WindowInsets wi = getRootWindowInsets();
+        android.view.DisplayCutout dc = wi != null ? wi.getDisplayCutout() : null;
+        if (dc == null) return;
+        int[] at = new int[2];
+        getLocationOnScreen(at);
+        float margin = 10 * unit;
+        for (android.graphics.Rect r : dc.getBoundingRects()) {
+            float left = r.left - at[0], right = r.right - at[0], top = r.top - at[1], bottom = r.bottom - at[1];
+            if (kbX + kbR + margin > left && kbX - kbR - margin < right
+                    && kbY + kbR + margin > top && kbY - kbR - margin < bottom) {
+                kbY = top - kbR - margin * 2;
             }
         }
     }
