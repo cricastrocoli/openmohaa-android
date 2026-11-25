@@ -148,11 +148,22 @@ public class LauncherActivity extends Activity {
         LinearLayout footer = row();
         hints = row();
         footer.addView(hints);
-        footer.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
+        // The credit takes the room left between the hints and the links, right-aligned, and
+        // is the one shortened when a narrow screen has too little (so the version shows).
         TextView madeBy = text("", 13, INK_DIM, false);
         madeBy.setText(getText(R.string.made_by));
-        madeBy.setPadding(0, 0, dp(14), 0);
-        footer.addView(madeBy);
+        madeBy.setPadding(dp(14), 0, dp(14), 0);
+        madeBy.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        madeBy.setSingleLine(true);
+        madeBy.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        footer.addView(madeBy, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        // Cut short (a 4:3 screen), it says just "by cricastrocoli".
+        madeBy.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            android.text.Layout layout = madeBy.getLayout();
+            if (layout != null && layout.getEllipsisCount(0) > 0
+                    && !madeBy.getText().toString().equals(getText(R.string.made_by_short).toString()))
+                madeBy.post(() -> madeBy.setText(getText(R.string.made_by_short)));
+        });
         footer.addView(link(R.drawable.ic_github, true, getString(R.string.link_github), GITHUB_URL));
         footer.addView(link(R.drawable.ic_youtube, false, getString(R.string.link_youtube), YOUTUBE_URL));
         TextView ver = text("v" + version(), 12, INK_DIM, false);
