@@ -401,6 +401,7 @@ public class LauncherActivity extends Activity {
                 prefs.setGame(g);
             }
         });
+        section(list, R.string.section_video);
         option(list, R.string.setting_resolution, R.string.setting_resolution_desc, new Choice() {
             public String label() {
                 int[] r = Prefs.RESOLUTIONS[prefs.resolution()];
@@ -435,6 +436,7 @@ public class LauncherActivity extends Activity {
             public String label() { return getString(names[prefs.scanlines()]); }
             public void change(int s) { prefs.setScanlines(wrap(prefs.scanlines() + s, names.length)); }
         });
+        section(list, R.string.section_gameplay);
         option(list, R.string.setting_aim, R.string.setting_aim_desc, new Choice() {
             public String label() { return Prefs.AIM_SPEEDS[prefs.aimSpeed()] + "%"; }
             public void change(int s) { prefs.setAimSpeed(Math.max(0, Math.min(Prefs.AIM_SPEEDS.length - 1, prefs.aimSpeed() + s))); }
@@ -462,6 +464,14 @@ public class LauncherActivity extends Activity {
         defaultFocus = first;
         first.requestFocus();
         return scroll(list);
+    }
+
+    // A titled group of options on a settings page.
+    private void section(LinearLayout list, int title) {
+        TextView t = text(getString(title).toUpperCase(java.util.Locale.ROOT), 14, GOLD, true);
+        t.setLetterSpacing(0.15f);
+        t.setPadding(dp(6), dp(18), 0, dp(4));
+        list.addView(t);
     }
 
     private View option(LinearLayout list, int label, int desc, Choice c) {

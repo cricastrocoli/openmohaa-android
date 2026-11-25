@@ -35,6 +35,8 @@
     <string name="hint_select">Select</string>
     <string name="hint_back">Back</string>
     <string name="hint_change">Change</string>
+    <string name="section_video">Video</string>
+    <string name="section_gameplay">Gameplay</string>
     <string name="setting_resolution">Resolution</string>
     <string name="setting_resolution_desc">Lower is faster and uses less battery; the picture is scaled to the screen.</string>
     <string name="setting_aspect">Aspect ratio</string>

@@ -28,6 +28,8 @@
     <string name="hint_select">Selecionar</string>
     <string name="hint_back">Voltar</string>
     <string name="hint_change">Alterar</string>
+    <string name="section_video">Vídeo</string>
+    <string name="section_gameplay">Gameplay</string>
     <string name="setting_resolution">Resolução</string>
     <string name="setting_resolution_desc">Menor é mais leve e gasta menos bateria; a imagem é ampliada para a tela.</string>
     <string name="setting_aspect">Proporção da imagem</string>
