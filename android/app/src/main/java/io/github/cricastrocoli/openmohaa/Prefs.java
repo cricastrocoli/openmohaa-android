@@ -106,6 +106,7 @@ public final class Prefs {
 
     // 0 widescreen, 1 menus and videos in 4:3 (play in widescreen), 2 everything in 4:3.
     public int aspect() { return clamp(p.getInt("aspect", 0), 3); }
+    public boolean hasAspect() { return p.contains("aspect"); }
     public void setAspect(int v) { p.edit().putInt("aspect", v).apply(); }
 
     public int gyro() { return clamp(p.getInt("gyro", 0), GyroAim.SENSITIVITY.length); }

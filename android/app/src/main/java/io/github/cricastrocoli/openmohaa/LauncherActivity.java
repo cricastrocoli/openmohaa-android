@@ -94,6 +94,9 @@ public class LauncherActivity extends Activity {
         // (the Retroid Pocket 6). Shorter ones, such as a phone held sideways (a Galaxy S23 is
         // 360 dp), and narrower ones, such as a 4:3 Retroid Pocket Nova (640 dp), get the whole
         // interface scaled down to fit, rather than cut off at the bottom or the right.
+        // The aspect option starts at what the screen is: "All in 4:3" on a 4:3 screen (like
+        // the Retroid Pocket Nova), widescreen on wider ones. The player's choice then stays.
+        if (!prefs.hasAspect() && screenW * 3 <= screenH * 4 + screenH / 10) prefs.setAspect(2);
         uiScale = Math.max(0.7f, Math.min(1f, Math.min(screenH / m.density / 450f, screenW / m.density / 820f)));
 
         FrameLayout root = new FrameLayout(this);
@@ -405,15 +408,11 @@ public class LauncherActivity extends Activity {
             }
             public void change(int s) { prefs.setResolution(wrap(prefs.resolution() + s, Prefs.RESOLUTIONS.length)); }
         });
-        // Only on screens wider than 4:3 (on a 4:3 one, like the Retroid Pocket Nova, every
-        // choice looks the same).
-        if (screenW * 3 > screenH * 4 + screenH / 10) {
-            option(list, R.string.setting_aspect, R.string.setting_aspect_desc, new Choice() {
-                final int[] names = {R.string.aspect_wide, R.string.aspect_menus43, R.string.aspect_43};
-                public String label() { return getString(names[prefs.aspect()]); }
-                public void change(int s) { prefs.setAspect(wrap(prefs.aspect() + s, names.length)); }
-            });
-        }
+        option(list, R.string.setting_aspect, R.string.setting_aspect_desc, new Choice() {
+            final int[] names = {R.string.aspect_wide, R.string.aspect_menus43, R.string.aspect_43};
+            public String label() { return getString(names[prefs.aspect()]); }
+            public void change(int s) { prefs.setAspect(wrap(prefs.aspect() + s, names.length)); }
+        });
         option(list, R.string.setting_graphics, R.string.setting_graphics_desc, new Choice() {
             final int[] names = {R.string.graphics_custom, R.string.graphics_low, R.string.graphics_medium,
                     R.string.graphics_high, R.string.graphics_ultra};
