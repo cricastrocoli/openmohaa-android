@@ -402,6 +402,43 @@ public final class GameData {
         return count == 0 ? -1 : count;
     }
 
+    // Every game's saved games in one zip, as <game folder>/save/omconfig/<file> (the layout
+    // of a PC's OpenMoHAA home folder, and what importSaves reads back). Returns the number of
+    // saved games (.sav) written.
+    public static int exportSaves(Context c, java.io.OutputStream out) throws IOException {
+        int count = 0;
+        byte[] buf = new byte[1 << 16];
+        try (java.util.zip.ZipOutputStream zout = new java.util.zip.ZipOutputStream(out)) {
+            for (int g = 0; g < FOLDERS.length; g++) {
+                File[] files = new File(modsDir(c, g), SAVE_FOLDER).listFiles();
+                if (files == null) continue;
+                java.util.Arrays.sort(files);
+                for (File f : files) {
+                    if (!f.isFile() || !isSaveFile(f.getName())) continue;
+                    ZipEntry e = new ZipEntry(FOLDERS[g] + "/" + SAVE_FOLDER + "/" + f.getName());
+                    e.setTime(f.lastModified());
+                    zout.putNextEntry(e);
+                    try (InputStream in = new java.io.FileInputStream(f)) {
+                        for (int n; (n = in.read(buf)) > 0; ) zout.write(buf, 0, n);
+                    }
+                    zout.closeEntry();
+                    if (f.getName().toLowerCase().endsWith(".sav")) count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    // Whether any game has a saved game to export.
+    public static boolean hasSaves(Context c) {
+        for (int g = 0; g < FOLDERS.length; g++) {
+            File[] files = new File(modsDir(c, g), SAVE_FOLDER).listFiles();
+            if (files == null) continue;
+            for (File f : files) if (f.getName().toLowerCase().endsWith(".sav")) return true;
+        }
+        return false;
+    }
+
     private static File saveDir(Context c, int game) throws IOException {
         File dir = new File(modsDir(c, game), SAVE_FOLDER);
         if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Can't create " + dir);

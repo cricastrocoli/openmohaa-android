@@ -111,6 +111,10 @@
     <string name="saves_imported">%1$d saved games imported.</string>
     <string name="saves_none">No saved games found. Pick the .sav files (with their .ssv and .tga), or a .zip holding them.</string>
     <string name="saves_error">The saved games could not be imported: %1$s</string>
+    <string name="files_export_saves">Export saved games (all campaigns)</string>
+    <string name="saves_exported">%1$d saved games exported. The zip can be imported on another device, or unpacked into OpenMoHAA\'s home folder on a PC.</string>
+    <string name="saves_export_none">There are no saved games to export yet.</string>
+    <string name="saves_export_error">The saved games could not be exported: %1$s</string>
     <string name="setting_touch">Touch controls</string>
     <string name="setting_touch_desc">On-screen controls, and tapping the game\'s menus. Automatic: the controls show only when no controller is connected. Never: the screen ignores touches.</string>
     <string name="touch_auto">Automatic</string>

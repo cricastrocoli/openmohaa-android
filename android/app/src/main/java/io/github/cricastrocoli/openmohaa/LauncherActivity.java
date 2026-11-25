@@ -41,6 +41,7 @@ public class LauncherActivity extends Activity {
     private static final int REQ_MODS = 2;
     private static final int REQ_IMPORT_FILE = 3;
     private static final int REQ_SAVES = 4;
+    private static final int REQ_EXPORT_SAVES = 5;
 
     // Colours.
     private static final int INK = Color.rgb(236, 231, 214);         // text on dark
@@ -594,6 +595,14 @@ public class LauncherActivity extends Activity {
         focusable(savesRow, new TextView[]{sl}, v -> { if (!importing) pickSaves(); });
         list.addView(savesRow, listItem());
 
+        // And the other way: every game's saves in a zip, for another device or a PC.
+        LinearLayout exportRow = row();
+        exportRow.setPadding(dp(18), dp(14), dp(18), dp(14));
+        TextView el = text("⤒  " + getString(R.string.files_export_saves), 17, GOLD, true);
+        exportRow.addView(el);
+        focusable(exportRow, new TextView[]{el}, v -> { if (!importing) pickExportFile(); });
+        list.addView(exportRow, listItem());
+
         importBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         importBar.setMax(1000);
         importBar.setVisibility(importing ? View.VISIBLE : View.GONE);
@@ -612,6 +621,33 @@ public class LauncherActivity extends Activity {
         i.setType("*/*");
         i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         startActivityForResult(i, REQ_SAVES);
+    }
+
+    private void pickExportFile() {
+        if (!GameData.hasSaves(this)) {
+            if (importText != null) importText.setText(R.string.saves_export_none);
+            return;
+        }
+        Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("application/zip");
+        i.putExtra(Intent.EXTRA_TITLE, "OpenMoHAA-saves-"
+                + new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date()) + ".zip");
+        startActivityForResult(i, REQ_EXPORT_SAVES);
+    }
+
+    private void exportSavesResult(Uri uri) {
+        new Thread(() -> {
+            String msg;
+            try (java.io.OutputStream out = getContentResolver().openOutputStream(uri, "wt")) {
+                int n = GameData.exportSaves(this, out);
+                msg = getString(R.string.saves_exported, n);
+            } catch (Exception e) {
+                msg = getString(R.string.saves_export_error, e.getMessage() != null ? e.getMessage() : e.toString());
+            }
+            String m = msg;
+            ui.post(() -> { if (page == Page.FILES && importText != null) importText.setText(m); });
+        }, "export-saves").start();
     }
 
     private void importSavesResult(Intent data) {
@@ -657,6 +693,10 @@ public class LauncherActivity extends Activity {
         }
         if (requestCode == REQ_SAVES && resultCode == RESULT_OK && data != null) {
             importSavesResult(data);
+            return;
+        }
+        if (requestCode == REQ_EXPORT_SAVES && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            exportSavesResult(data.getData());
             return;
         }
         if ((requestCode != REQ_IMPORT && requestCode != REQ_IMPORT_FILE) || resultCode != RESULT_OK

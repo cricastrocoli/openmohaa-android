@@ -100,6 +100,10 @@
     <string name="saves_imported">%1$d saves importados.</string>
     <string name="saves_none">Nenhum save encontrado. Escolha os arquivos .sav (com os .ssv e .tga), ou um .zip com eles.</string>
     <string name="saves_error">Não foi possível importar os saves: %1$s</string>
+    <string name="files_export_saves">Exportar saves (todas as campanhas)</string>
+    <string name="saves_exported">%1$d saves exportados. O zip pode ser importado em outro aparelho ou descompactado na pasta do OpenMoHAA no PC.</string>
+    <string name="saves_export_none">Ainda não há saves para exportar.</string>
+    <string name="saves_export_error">Não foi possível exportar os saves: %1$s</string>
     <string name="setting_touch">Controles de toque</string>
     <string name="setting_touch_desc">Controles na tela, e toque nos menus do jogo. Automático: os controles só aparecem sem controle conectado. Nunca: a tela ignora toques.</string>
     <string name="touch_auto">Automático</string>
