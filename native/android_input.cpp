@@ -46,6 +46,7 @@
 
 #include <math.h>
 #include "SDL.h"
+#include <jni.h>
 
 static SDL_GameController* pad;
 static cvar_t* buttonMap;
@@ -547,12 +548,31 @@ static float aimAssist(float dt) {
     return 1.0f - (1.0f - aaSlow->value) * strength;
 }
 
+// Gyro aiming (GyroAim.java): degrees turned since the last frame.
+static float gyroYaw, gyroPitch;
+
+extern "C" JNIEXPORT void JNICALL
+Java_io_github_cricastrocoli_openmohaa_GyroAim_nativeGyro(JNIEnv*, jclass, jfloat yaw, jfloat pitch) {
+    SDL_AtomicLock(&touchLock);
+    gyroYaw += yaw;
+    gyroPitch += pitch;
+    SDL_AtomicUnlock(&touchLock);
+}
+
 // Touch: the stick's move and the finger movement for aiming since the last frame.
 static void touchMove(usercmd_t* cmd, float slow) {
     SDL_AtomicLock(&touchLock);
     float mx = touchMoveX, my = touchMoveY, ax = touchAimX, ay = touchAimY;
+    float gy = gyroYaw, gp = gyroPitch;
     touchAimX = touchAimY = 0;
+    gyroYaw = gyroPitch = 0;
     SDL_AtomicUnlock(&touchLock);
+    if (gy || gp) {
+        // Slower while zoomed, like the other aiming; aim assist's friction applies too.
+        float z = zoomScale() * slow;
+        cl.viewangles[YAW] += gy * z;
+        cl.viewangles[PITCH] += (aimInvert->integer ? -gp : gp) * z;
+    }
     if (mx || my) addMove(cmd, mx, my);
     if (ax || ay) {
         float deg = touchAim->value * aimScale->value * zoomScale() * slow;
@@ -566,6 +586,7 @@ extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
         rampHeld = 0;
         SDL_AtomicLock(&touchLock);
         touchAimX = touchAimY = 0;  // aiming done over a menu isn't kept for later
+        gyroYaw = gyroPitch = 0;
         SDL_AtomicUnlock(&touchLock);
         return;
     }
@@ -616,7 +637,6 @@ extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
 
 // ---- JNI: TouchControls.java ---------------------------------------------------------------
 
-#include <jni.h>
 
 extern "C" JNIEXPORT void JNICALL
 Java_io_github_cricastrocoli_openmohaa_TouchControls_nativeMove(JNIEnv*, jclass, jfloat x, jfloat y) {

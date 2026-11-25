@@ -436,6 +436,13 @@ public class LauncherActivity extends Activity {
             public String label() { return Prefs.AIM_SPEEDS[prefs.aimSpeed()] + "%"; }
             public void change(int s) { prefs.setAimSpeed(Math.max(0, Math.min(Prefs.AIM_SPEEDS.length - 1, prefs.aimSpeed() + s))); }
         });
+        if (GyroAim.available(this)) {
+            option(list, R.string.setting_gyro, R.string.setting_gyro_desc, new Choice() {
+                final int[] names = {R.string.off, R.string.gyro_low, R.string.gyro_medium, R.string.gyro_high};
+                public String label() { return getString(names[prefs.gyro()]); }
+                public void change(int s) { prefs.setGyro(wrap(prefs.gyro() + s, names.length)); }
+            });
+        }
         option(list, R.string.setting_invert, 0, new Choice() {
             public String label() { return getString(prefs.invertAim() ? R.string.on : R.string.off); }
             public void change(int s) { prefs.setInvertAim(!prefs.invertAim()); }
@@ -921,6 +928,7 @@ public class LauncherActivity extends Activity {
         i.putExtra(GameActivity.EXTRA_FPS, Prefs.FRAME_RATES[prefs.frameRate()]);
         i.putExtra(GameActivity.EXTRA_TOUCH, prefs.touchMode());
         i.putExtra(GameActivity.EXTRA_SCANLINES, prefs.scanlines());
+        i.putExtra(GameActivity.EXTRA_GYRO, prefs.gyro());
         i.putExtra(GameActivity.EXTRA_ASPECT, prefs.aspect() == 2 ? 1 : 0);
         startActivity(i);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);

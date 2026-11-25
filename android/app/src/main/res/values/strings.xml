@@ -60,6 +60,11 @@
     <string name="scanlines_strong">Strong</string>
     <string name="setting_aim">Aim speed</string>
     <string name="setting_aim_desc">How fast the right stick turns.</string>
+    <string name="setting_gyro">Gyro aiming</string>
+    <string name="setting_gyro_desc">Turn or tilt the device to aim, on top of the stick or touch. Only in play.</string>
+    <string name="gyro_low">Low</string>
+    <string name="gyro_medium">Medium</string>
+    <string name="gyro_high">High</string>
     <string name="setting_invert">Invert vertical aim</string>
     <string name="on">On</string>
     <string name="off">Off</string>

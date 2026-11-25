@@ -24,6 +24,8 @@ public class GameActivity extends SDLActivity {
     public static final String EXTRA_FPS = "fps";  // the frame rate cap; 0 = unlimited
     public static final String EXTRA_TOUCH = "touch";  // TouchControls.AUTO / ALWAYS / NEVER
     private TouchControls touch;
+    private GyroAim gyro;
+    public static final String EXTRA_GYRO = "gyro";  // GyroAim.SENSITIVITY index, 0 = off
 
     public static final String EXTRA_ASPECT = "aspect";  // 0 = the screen's own, 1 = 4:3
     public static final String EXTRA_SCANLINES = "scanlines";  // 0 = off, up to strong (ScanlineView)
@@ -42,7 +44,14 @@ public class GameActivity extends SDLActivity {
         touch = new TouchControls(this, getIntent().getIntExtra(EXTRA_TOUCH, TouchControls.AUTO));
         addContentView(touch,
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        gyro = new GyroAim(this, getIntent().getIntExtra(EXTRA_GYRO, 0));
         hideSystemBars();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (gyro != null) gyro.stop();
     }
 
     // With the touch view in the window, Android brought the navigation bar back over the
@@ -51,6 +60,7 @@ public class GameActivity extends SDLActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (gyro != null) gyro.start();
         hideSystemBars();
     }
 

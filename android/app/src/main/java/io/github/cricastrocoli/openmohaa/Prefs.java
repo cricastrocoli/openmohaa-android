@@ -108,6 +108,9 @@ public final class Prefs {
     public int aspect() { return clamp(p.getInt("aspect", 0), 3); }
     public void setAspect(int v) { p.edit().putInt("aspect", v).apply(); }
 
+    public int gyro() { return clamp(p.getInt("gyro", 0), GyroAim.SENSITIVITY.length); }
+    public void setGyro(int v) { p.edit().putInt("gyro", v).apply(); }
+
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
     public void setGraphics(int g) { p.edit().putInt("graphics", g).apply(); }
 
