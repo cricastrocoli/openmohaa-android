@@ -12,21 +12,26 @@ import android.view.Surface;
 // axis) turns the view; tilting the top toward or away from you looks down or up. Only in play
 // (the game ignores it in menus); the sensor runs only while the game is in front.
 final class GyroAim implements SensorEventListener {
-    // Off, low, medium, high: the view turns this many times the device's own turn.
-    static final float[] SENSITIVITY = {0f, 0.75f, 1.5f, 2.5f};
+    // Automatic, off, low, medium, high: the view turns this many times the device's own
+    // turn. Automatic is medium without a controller and off with one (TouchControls tells).
+    static final int AUTO = 0;
+    static final float[] SENSITIVITY = {1.5f, 0f, 0.75f, 1.5f, 2.5f};
     private static final float DEAD = 0.015f;  // rad/s: below this, sensor noise
 
     private final Activity activity;
     private final SensorManager sensors;
     private final Sensor gyro;
     private final float scale;
+    private final boolean auto;
     private long last;
 
     GyroAim(Activity a, int level) {
         activity = a;
         sensors = (SensorManager) a.getSystemService(Activity.SENSOR_SERVICE);
         gyro = sensors != null ? sensors.getDefaultSensor(Sensor.TYPE_GYROSCOPE) : null;
-        scale = SENSITIVITY[Math.max(0, Math.min(SENSITIVITY.length - 1, level))];
+        int l = Math.max(0, Math.min(SENSITIVITY.length - 1, level));
+        scale = SENSITIVITY[l];
+        auto = l == AUTO;
     }
 
     static boolean available(Activity a) {
@@ -46,6 +51,10 @@ final class GyroAim implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent e) {
+        if (auto && TouchControls.controllerPresent) {  // automatic: off with a controller
+            last = 0;
+            return;
+        }
         long t = e.timestamp;
         float dt = last == 0 ? 0 : (t - last) / 1e9f;
         last = t;

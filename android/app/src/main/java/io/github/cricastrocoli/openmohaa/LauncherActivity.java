@@ -441,7 +441,8 @@ public class LauncherActivity extends Activity {
         });
         if (GyroAim.available(this)) {
             option(list, R.string.setting_gyro, R.string.setting_gyro_desc, new Choice() {
-                final int[] names = {R.string.off, R.string.gyro_low, R.string.gyro_medium, R.string.gyro_high};
+                final int[] names = {R.string.gyro_auto, R.string.off, R.string.gyro_low, R.string.gyro_medium,
+                        R.string.gyro_high};
                 public String label() { return getString(names[prefs.gyro()]); }
                 public void change(int s) { prefs.setGyro(wrap(prefs.gyro() + s, names.length)); }
             });

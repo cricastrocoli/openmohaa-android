@@ -54,7 +54,8 @@
     <string name="setting_aim">Velocidade da mira</string>
     <string name="setting_aim_desc">O quanto o analógico direito gira a visão.</string>
     <string name="setting_gyro">Mira por giroscópio</string>
-    <string name="setting_gyro_desc">Gire ou incline o aparelho para mirar, somado ao analógico ou ao toque. Só durante a partida.</string>
+    <string name="setting_gyro_desc">Gire ou incline o aparelho para mirar, somado ao analógico ou ao toque. Só durante a partida. Automático: ligado (média) sem controle, desligado com controle.</string>
+    <string name="gyro_auto">Automático</string>
     <string name="gyro_low">Baixa</string>
     <string name="gyro_medium">Média</string>
     <string name="gyro_high">Alta</string>

@@ -109,8 +109,9 @@ public final class Prefs {
     public boolean hasAspect() { return p.contains("aspect"); }
     public void setAspect(int v) { p.edit().putInt("aspect", v).apply(); }
 
-    public int gyro() { return clamp(p.getInt("gyro", 2), GyroAim.SENSITIVITY.length); }  // medium
-    public void setGyro(int v) { p.edit().putInt("gyro", v).apply(); }
+    // GyroAim.SENSITIVITY index: automatic by default.
+    public int gyro() { return clamp(p.getInt("gyroMode", GyroAim.AUTO), GyroAim.SENSITIVITY.length); }
+    public void setGyro(int v) { p.edit().putInt("gyroMode", v).apply(); }
 
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
     public void setGraphics(int g) { p.edit().putInt("graphics", g).apply(); }

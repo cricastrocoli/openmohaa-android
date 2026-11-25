@@ -114,6 +114,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             label = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private boolean controller;      // a controller is connected
+    static volatile boolean controllerPresent;  // the same, for GyroAim's automatic mode
     private boolean inMenu = true;
     // What each finger is doing: a Button, STICK or AIM.
     private final SparseArray<Object> fingers = new SparseArray<>();
@@ -132,6 +133,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         dp = c.getResources().getDisplayMetrics().density;
         inputManager = (InputManager) c.getSystemService(Context.INPUT_SERVICE);
         controller = controllerConnected();
+        controllerPresent = controller;
         ring.setStyle(Paint.Style.STROKE);
         ring.setStrokeWidth(2 * dp);
         label.setTextAlign(Paint.Align.CENTER);
@@ -194,6 +196,7 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         boolean c = controllerConnected();
         if (c == controller) return;
         controller = c;
+        controllerPresent = c;
         if (!controlsShown()) releaseAll();
         invalidate();
     }
