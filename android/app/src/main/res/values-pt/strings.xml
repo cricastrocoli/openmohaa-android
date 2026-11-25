@@ -31,9 +31,10 @@
     <string name="setting_resolution">Resolução</string>
     <string name="setting_resolution_desc">Menor é mais leve e gasta menos bateria; a imagem é ampliada para a tela.</string>
     <string name="setting_aspect">Proporção da imagem</string>
-    <string name="setting_aspect_desc">Widescreen ocupa a tela toda. 4:3 é a imagem original, com faixas pretas nas laterais: menus e vídeos não ficam esticados, mas na partida se vê menos dos lados.</string>
+    <string name="setting_aspect_desc">Widescreen ocupa a tela toda (menus e vídeos esticados). Menus em 4:3: menus, vídeos e carregamento sem esticar, partida em widescreen. Tudo em 4:3: a imagem original, com faixas pretas, e menos visão dos lados na partida.</string>
     <string name="aspect_wide">Widescreen</string>
-    <string name="aspect_43">4:3</string>
+    <string name="aspect_menus43">Menus em 4:3</string>
+    <string name="aspect_43">Tudo em 4:3</string>
     <string name="setting_graphics">Qualidade gráfica</string>
     <string name="setting_graphics_desc">Menor é mais leve para aparelhos fracos: detalhe das texturas, filtragem, sombras, detalhe à distância, efeitos. Personalizado mantém o que você ajustou nos menus do próprio jogo.</string>
     <string name="graphics_custom">Personalizado</string>

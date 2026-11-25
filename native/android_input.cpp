@@ -330,7 +330,15 @@ static void applyTouch(bool menu) {
     if (tap && menu) {
         // The finger goes down: the pointer moves under it and the button goes down; it lifts:
         // the button comes up (a click, as with a mouse; menus act on the release).
-        CL_SetMousePos((int) (x * cls.glconfig.vidWidth), (int) (y * cls.glconfig.vidHeight));
+        // Menus in 4:3 (r_pillarbox2d): the picture is a centred 4:3 area of the screen.
+        static cvar_t* pillarbox = Cvar_Get("r_pillarbox2d", "0", CVAR_TEMP);
+        float W = cls.glconfig.vidWidth, H = cls.glconfig.vidHeight;
+        if (pillarbox->integer && W * 3 > H * 4) {
+            float f = H * 4 / 3 / W;
+            x = (x - (1 - f) / 2) / f;
+            x = x < 0 ? 0 : x > 1 ? 1 : x;
+        }
+        CL_SetMousePos((int) (x * W), (int) (y * H));
         menuKey(K_MOUSE1, isDown);
     }
     for (int act = 0; act < A_COUNT; act++) {

@@ -104,7 +104,8 @@ public final class Prefs {
     public int hudSize() { return clamp(p.getInt("hudSize", 1), HUD_SIZES.length); }  // 125%
     public void setHudSize(int v) { p.edit().putInt("hudSize", v).apply(); }
 
-    public int aspect() { return clamp(p.getInt("aspect", 0), 2); }  // 0 widescreen, 1 4:3
+    // 0 widescreen, 1 menus and videos in 4:3 (play in widescreen), 2 everything in 4:3.
+    public int aspect() { return clamp(p.getInt("aspect", 0), 3); }
     public void setAspect(int v) { p.edit().putInt("aspect", v).apply(); }
 
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
@@ -116,7 +117,7 @@ public final class Prefs {
     public int[] renderSize(int screenW, int screenH) {
         int[] r = RESOLUTIONS[resolution()];
         int w = r[0] != 0 ? r[0] : screenW, h = r[0] != 0 ? r[1] : screenH;
-        boolean four3 = aspect() == 1 && w * 3 > h * 4;
+        boolean four3 = aspect() == 2 && w * 3 > h * 4;
         if (four3) w = (h * 4 / 3) & ~1;
         return r[0] == 0 && !four3 ? new int[]{0, 0} : new int[]{w, h};
     }
@@ -135,6 +136,7 @@ public final class Prefs {
         if (g != null) {
             for (int i = 0; i < g.length; i++) set(a, GRAPHICS_CVARS[i], g[i]);
         }
+        set(a, "rp_menu43", aspect() == 1 ? "1" : "0");
         set(a, "rp_hudscale", Float.toString(HUD_SIZES[hudSize()] / 100f));
         set(a, "com_maxfps", Integer.toString(FRAME_RATES[frameRate()]));
         set(a, "com_target_game", Integer.toString(game()));
