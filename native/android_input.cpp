@@ -4,7 +4,7 @@
 // in degrees per second (independent of the frame rate), scaled down while zoomed like the
 // mouse. Moving (left stick): analog. Buttons: the game's own commands; crouch (L3) and walk
 // (R3) are click-on/click-off toggles. Start and Android's Back open the menu. In menus the
-// sticks move the pointer, A clicks and B goes back.
+// sticks move the pointer, A clicks and B goes back. Select + Start opens Android's keyboard.
 //
 // Tunable with rp_* cvars (saved in the config):
 //   rp_aim_scale                overall aim speed, set by the launcher (1.0)
@@ -266,8 +266,19 @@ static void actionChanged(int act, bool isDown) {
     }
 }
 
+// Android's keyboard, opened or closed on the game's thread (IN_Android_Commands): by the
+// touch keyboard button, or by Select + Start (objectives + menu buttons) on a controller.
+static SDL_atomic_t keyboardToggle;
+
 static void buttonChanged(int b, bool isDown, bool menu) {
     int act = buttonAction[b];
+    // Objectives + menu (Select + Start): the keyboard, in menus and in play.
+    if (isDown && ((act == A_MENU && down[actionButton[A_OBJECTIVES]])
+                   || (act == A_OBJECTIVES && down[actionButton[A_MENU]]))) {
+        if (held[A_OBJECTIVES]) { Cbuf_AddText("-scores\n"); held[A_OBJECTIVES] = false; }
+        SDL_AtomicSet(&keyboardToggle, 1);
+        return;
+    }
     if (menu) {
         // Menus: A clicks, B and Start (or the menu button) go back, the D-pad is the arrows.
         if (act == A_MENU) { escape(isDown); return; }
@@ -393,8 +404,6 @@ static Uint32 lastCursorTime;
 
 // Called once a frame from Com_Frame, before events: the controller's buttons, and the menu
 // pointer.
-static SDL_atomic_t keyboardToggle;
-
 extern "C" void IN_Android_Commands(void) {
     if (SDL_AtomicSet(&keyboardToggle, 0)) {
         // (SDL counts text input as active from the start, so ask whether the keyboard shows.)

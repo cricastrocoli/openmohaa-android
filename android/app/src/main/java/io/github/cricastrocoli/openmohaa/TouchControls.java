@@ -61,8 +61,10 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         return n;
     }
 
+    // With the touch controls (no controller, or touch set to Always), in menus and in play;
+    // with a controller, Select + Start opens the keyboard instead (android_input.cpp).
     private boolean keyboardShown() {
-        return mode != NEVER && (inMenu || controlsShown());
+        return mode == ALWAYS || (mode == AUTO && !controller);
     }
 
     // A button: its action, its label, and where it sits, in dp from the screen's right and
