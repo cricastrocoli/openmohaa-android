@@ -24,7 +24,7 @@ repo() {  # url branch commit dir
 # OpenMoHAA: openmoh/openmohaa, with emileb's Android port (mobile_master) and this project's
 # changes on top (see that branch's history). Pinned to the commit the current release is built
 # from, so a build from this tree matches the published APK.
-repo https://github.com/cricastrocoli/openmohaa.git rp6-android e212366c43d94cfbf51fe92793147a43cadeff89 openmohaa
+repo https://github.com/cricastrocoli/openmohaa.git rp6-android c60436d9ed582fead4b42afcaaf6303cb1201b05 openmohaa
 
 tarball https://github.com/libsdl-org/SDL/releases/download/release-2.32.8/SDL2-2.32.8.tar.gz \
     SDL2-2.32.8.tar.gz 0ca83e9c9b31e18288c7ec811108e58bac1f1bb5ec6577ad386830eac51c787e SDL2-2.32.8

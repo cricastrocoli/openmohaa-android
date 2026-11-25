@@ -13,25 +13,29 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
 
 ## Destaques
 
-- 🆕 **Instalação direto do instalador da GOG, no aparelho.** Baixe o instalador para Windows
+🆕 marca o que é novo na 2.0.
+
+- 🆕 **Multiplayer online e em rede local**: lista de servidores da internet (mais de 200),
+  entrada nas partidas, ou partida criada na sua rede para outro aparelho.
+- 🆕 **Mira assistida** (só na campanha, opcional): a mira desacelera e acompanha o inimigo
+  quando passa sobre ele, com um leve toque em direção ao tórax. Quem mira continua sendo você.
+- 🆕 **Mira por giroscópio**: gire ou incline o aparelho para mirar. Ligada por padrão quando
+  não há controle.
+- 🆕 **Proporção da imagem**: widescreen, **menus em 4:3** (menus e vídeos sem esticar,
+  partida em widescreen) ou 4:3, como no original num monitor CRT.
+- 🆕 **Presets gráficos** (de baixo a muito alto), **HUD maior** para telas pequenas e
+  **filtro de scanlines**.
+- 🆕 **Exportar saves** para levar a outro aparelho ou ao PC.
+- 🆕 **Teclado na tela** dentro do jogo (Select + Start, ou um botão com os controles por
+  toque), para o nome do jogador, endereços de servidor e o console.
+- **Instalação direto do instalador da GOG, no aparelho.** Baixe o instalador para Windows
   (o `setup_….exe` e os arquivos `.bin`), escolha-os no launcher e pronto: o app extrai o jogo
   sozinho. No Retroid Pocket 6 isso leva cerca de **70 segundos** para os três jogos (2,7 GB).
-- 🆕 **Até 120 FPS** em telas de 120 Hz, com opções de 30, 60 (padrão), 90, 120 ou sem limite.
-  Acima de 60, o app pede à tela a taxa de atualização mais alta, e avisa se as configurações
-  do aparelho a prendem em 60 Hz.
-- 🆕 **O rifle M1 Garand recarrega a qualquer momento.** No jogo original ele só recarrega
-  com o pente vazio; aqui ele recarrega como as outras armas, sem perder balas. Vem desligado,
-  para manter o comportamento original; ative em **Configurações** (só na campanha).
-- 🆕 **Mira analógica refinada** para o controle: zona morta radial, curva de resposta e
-  aceleração ao manter o analógico no limite (para virar rápido), com velocidade ajustável.
-- 🆕 **Botões configuráveis**: qualquer ação em qualquer botão, direto no launcher.
-- 🆕 **Resolução ajustável**: nativa, 1600×900, 1280×720 ou 960×540 (resoluções menores
-  economizam bateria; a imagem é ampliada para a tela inteira).
-- 🆕 **Mods e traduções** com importação pelo launcher, ligar/desligar e um conjunto por jogo.
-- 🆕 **Spearhead e Breakthrough**: escolha a campanha na tela inicial (LB / RB).
-- 🆕 **Controles por toque** para celulares sem controle (opcionais, automáticos), e toque
-  para escolher nos menus do jogo.
-- Allied Assault, Spearhead e Breakthrough num só app, os três testados.
+- **Até 120 FPS** em telas de 120 Hz.
+- **Controles por toque** para celulares sem controle, **botões configuráveis**, mira
+  analógica refinada, **mods e traduções**, e o M1 Garand que **recarrega a qualquer momento**
+  (opcional).
+- Allied Assault, Spearhead e Breakthrough num só app, os três testados, em telas 16:9 e 4:3.
 
 <p>
   <img src="docs/screenshots/game-1.jpg" width="32%" alt="M1 Garand à noite">
@@ -40,6 +44,34 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
 </p>
 
 *Rodando no Retroid Pocket 6 (com a tradução para o português).*
+
+<p>
+  <img src="docs/screenshots/nova.jpg" width="49%" alt="Uma missão na tela 4:3 do Retroid Pocket Nova">
+  <img src="docs/screenshots/scanlines.jpg" width="49%" alt="Uma missão com o filtro de scanlines leve">
+</p>
+
+*À esquerda, no Retroid Pocket Nova (4:3). À direita, o filtro de scanlines leve.*
+
+## Multiplayer
+
+🆕 Os menus de multiplayer do próprio jogo funcionam: **Join Internet Game** lista os
+servidores dos servidores mestres da comunidade (os originais da GameSpy acabaram há anos), e
+**Join LAN Game** encontra partidas na sua rede. Para criar uma, use **Start Game** na sala do
+multiplayer e deixe **Dedicated server** desmarcado (um servidor dedicado não tem jogador,
+então num portátil a tela simplesmente para).
+
+<p>
+  <img src="docs/screenshots/online-servers.jpg" width="49%" alt="A lista de servidores da internet">
+  <img src="docs/screenshots/online-match.jpg" width="49%" alt="Uma partida online">
+</p>
+<p>
+  <img src="docs/screenshots/online-lan-rp6.jpg" width="49%" alt="Uma partida em rede local vista no Retroid Pocket 6">
+  <img src="docs/screenshots/online-lan-nova.jpg" width="49%" alt="A mesma partida vista no Retroid Pocket Nova">
+</p>
+
+*Partida em rede local entre um Retroid Pocket 6 (à esquerda) e um Retroid Pocket Nova (à direita).*
+
+A mira assistida nunca funciona no multiplayer.
 
 ## Novidades deste port
 
@@ -52,7 +84,7 @@ Tudo abaixo foi feito para esta versão Android:
 - Navegação completa pelo controle (direcional, A, B, LB / RB) e também por toque.
 - Português (Brasil) e inglês, conforme o idioma do aparelho.
 - Créditos na abertura do jogo.
-- 🆕 Atualização pelo próprio app (a partir da 1.2.1): quando sai uma versão nova, a tela
+- Atualização pelo próprio app (a partir da 1.2.1): quando sai uma versão nova, a tela
   inicial avisa; um toque baixa a atualização e o Android pede para confirmar (na primeira vez,
   também para autorizar o app a instalar atualizações). Jogo, saves e configurações continuam.
   Ele consulta a página de versões deste projeto no GitHub no máximo uma vez por dia; nada
@@ -62,7 +94,7 @@ Tudo abaixo foi feito para esta versão Android:
 
 ![Arquivos do jogo](docs/screenshots/pt-files.jpg)
 
-- 🆕 **Instalador da GOG** (`setup_….exe` + `.bin`): extraído no aparelho com o
+- **Instalador da GOG** (`setup_….exe` + `.bin`): extraído no aparelho com o
   [innoextract](https://constexpr.org/innoextract/). Só as pastas de dados do jogo são
   copiadas (`main`, `mainta`, `maintt`). O app confere o espaço livre antes de começar e avisa
   se faltar alguma parte do instalador.
@@ -70,9 +102,11 @@ Tudo abaixo foi feito para esta versão Android:
 - `.zip` da pasta do jogo (ou só da pasta `main`).
 - Importar de novo pula o que já está igual, então uma importação interrompida continua de onde
   parou.
-- 🆕 **Importar saves** de um PC ou de outro aparelho: os arquivos `.sav` (com os `.ssv` e
+- **Importar saves** de um PC ou de outro aparelho: os arquivos `.sav` (com os `.ssv` e
   `.tga`), ou um `.zip` da pasta `save`. As pastas `main`, `mainta` ou `maintt` do zip mandam
   cada save para o jogo certo.
+- 🆕 **Exportar saves**: os saves de todas as campanhas num `.zip`, salvo onde você escolher.
+  Ele pode ser importado em outro aparelho ou descompactado na pasta do OpenMoHAA no PC.
 
 ### Configurações
 
@@ -81,11 +115,32 @@ Tudo abaixo foi feito para esta versão Android:
 | Opção | Valores |
 |---|---|
 | Jogo | Allied Assault, Spearhead, Breakthrough (os que estiverem instalados) |
-| Resolução | Nativa, 1600×900, 1280×720, 960×540 |
+| **Vídeo** | |
+| Resolução | Nativa, ou 900, 720 ou 540 linhas (a largura segue o formato da tela) |
+| 🆕 Proporção da imagem | Widescreen, **menus em 4:3**, 4:3 (telas 4:3 começam em 4:3) |
+| 🆕 Qualidade gráfica | Personalizado (menus do jogo), baixo, médio, **alto**, muito alto |
 | Taxa de quadros | 30, **60** (padrão), 90, **120**, sem limite |
+| 🆕 Tamanho do HUD | 100%, **125%** (padrão), 150% |
+| 🆕 Filtro de scanlines | **Desligado**, leve, médio, forte |
+| **Gameplay** | |
+| 🆕 Mira assistida | Ligada / **desligada** (só na campanha) |
 | Velocidade da mira | 50% a 150% |
+| 🆕 Mira por giroscópio | **Automático** (média sem controle, desligada com controle), desligada, baixa, média, alta |
 | Inverter mira vertical | Ligado / desligado |
 | Recarregar o rifle a qualquer momento | Ligado / **desligado** (padrão) |
+
+- 🆕 **A velocidade da mira é a mesma em qualquer formato de tela**: o jogo mostra mais dos
+  lados em telas mais largas, então o giro é ajustado pela proporção da imagem (com o 16:9 como
+  referência).
+- 🆕 **Presets gráficos** ajustam o detalhe e a filtragem das texturas, o nível de detalhe, as
+  sombras, os efeitos, as marcas de tiro e a fumaça. Uma instalação nova começa no Alto (o
+  padrão do jogo); se você já jogava, o Personalizado mantém o que você ajustou nos menus do
+  jogo.
+- 🆕 **Menus em 4:3**: os menus e vídeos do jogo foram feitos para 4:3 e ficavam esticados em
+  telas largas; esta opção os desenha numa área 4:3 com laterais pretas, e a partida continua
+  em widescreen.
+
+![O menu principal em 4:3 na tela widescreen do Retroid Pocket 6](docs/screenshots/menus-43.jpg)
 
 ### Controles
 
@@ -112,6 +167,7 @@ Padrão (todos os botões podem ser trocados na página **Controles**):
 | Start | Menu |
 | Select | Objetivos |
 | Select + LB / Select + RB | Salvamento rápido / carregamento rápido |
+| 🆕 Select + Start | Teclado na tela (abrir / fechar) |
 | Botão Voltar do Android | Menu |
 
 Agachar e andar devagar funcionam como **liga/desliga** em vez de segurar, que é mais
@@ -140,6 +196,10 @@ dentro dele num `.zip` e importe esse `.zip` na página **Mods**.
 
 ### Correções no jogo
 
+- 🆕 Jogo online: o navegador de servidores não fecha mais o jogo e volta a listar servidores.
+- 🆕 Desligar um mod agora o desliga de verdade (o motor continuava carregando os arquivos
+  desligados).
+- 🆕 O HUD em telas 4:3 tem o mesmo tamanho das telas 16:9.
 - Salvamentos: se o jogo não conseguir salvar (por exemplo, sem espaço), ele avisa, em vez de
   mostrar "Jogo salvo" mesmo assim.
 - Caixas de mensagem do jogo maiores e legíveis em telas pequenas.
@@ -148,25 +208,26 @@ dentro dele num `.zip` e importe esse `.zip` na página **Mods**.
 
 ![Controles por toque numa missão, num Galaxy S23](docs/screenshots/touch.jpg)
 
-🆕 Para jogar no celular sem controle. No modo padrão (**Automático**) os controles na tela só
+Para jogar no celular sem controle. No modo padrão (**Automático**) os controles na tela só
 aparecem enquanto não há controle conectado: conecte ou pareie um, mesmo no meio da partida, e
 eles somem. Dá para mudar na página **Controles**: Automático, **Sempre** ou **Nunca** (a tela
 ignora toques, então um toque sem querer não faz nada).
 
 - **Andar:** a parte esquerda da tela; o analógico aparece onde o polegar encostar.
 - **Mirar:** arraste em qualquer ponto da parte direita, inclusive a partir dos botões.
-  Arrastos lentos são precisos; movimentos rápidos giram mais, para virar depressa.
+  Arrastos lentos são precisos; movimentos rápidos giram mais, para virar depressa. 🆕 Com a
+  **mira por giroscópio**, girar o celular faz o ajuste fino.
 - **Botões:** atirar e mira (segurar), recarregar, pular, agachar, usar, arma (que também
-  escolhe a granada), item e
-  menu. Atirar, mira e pular agem assim que tocados; os outros agem num toque, e um arrasto
-  que começa neles gira a visão.
+  escolhe a granada), item e menu. Atirar, mira e pular agem assim que tocados; os outros agem
+  num toque, e um arrasto que começa neles gira a visão.
+- 🆕 **Teclado:** o botão na borda esquerda abre o teclado do Android (ele se afasta da câmera
+  frontal, se ela estiver na tela).
 - **Menus:** toque no que quiser, como em qualquer app (também com controle conectado, a menos
-  que o toque esteja em Nunca).
+  que o toque esteja em Nunca). 🆕 Sem controle, as páginas do launcher têm um botão de voltar.
 
 Um controle continua sendo o melhor jeito de jogar: a mira no analógico é mais precisa.
 
-Esta é a primeira versão dos controles por toque. Comentários e sugestões são bem-vindos nas
-[Issues](../../issues).
+![Digitando o nome do jogador com o teclado do Android](docs/screenshots/keyboard.jpg)
 
 ## Requisitos
 
@@ -184,8 +245,9 @@ Esta é a primeira versão dos controles por toque. Comentários e sugestões s�
 | Aparelho | Processador | Resultado |
 |---|---|---|
 | Retroid Pocket 6 | Snapdragon 8 Gen 2 (QCS8550) | Resolução nativa (1080p), 120 FPS |
+| Retroid Pocket Nova | Snapdragon 8 Gen 2 (QCS8550) | Resolução nativa (1280×960, 4:3), 120 FPS |
 | Retroid Pocket 5 | Snapdragon 865 | Resolução nativa (1080p), 60 FPS estáveis |
-| Samsung Galaxy S23 (Android 16) | Snapdragon 8 Gen 2 | Resolução nativa, tela em 120 Hz; instalado pelo instalador da GOG em cerca de 2 minutos |
+| Samsung Galaxy S23 (Android 16) | Snapdragon 8 Gen 2 | Resolução nativa, 120 FPS; instalado pelo instalador da GOG em cerca de 2 minutos |
 
 Outros aparelhos com processadores parecidos devem funcionar. Relatos são bem-vindos nas
 [Issues](../../issues).
@@ -210,7 +272,10 @@ para o aparelho e usar **Importar de uma pasta** ou **Importar de arquivos**.
 
 ## Problemas conhecidos
 
-- O multijogador não foi testado.
+- Criar partidas no Android funciona em rede local; criar partidas para a internet não foi
+  testado.
+- O multiplayer foi testado em alguns servidores públicos e em partidas em rede local entre dois
+  aparelhos.
 
 ## Compilar a partir do código-fonte
 
