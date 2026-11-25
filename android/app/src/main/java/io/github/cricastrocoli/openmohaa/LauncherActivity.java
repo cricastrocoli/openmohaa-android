@@ -405,6 +405,12 @@ public class LauncherActivity extends Activity {
             }
             public void change(int s) { prefs.setResolution(wrap(prefs.resolution() + s, Prefs.RESOLUTIONS.length)); }
         });
+        option(list, R.string.setting_graphics, R.string.setting_graphics_desc, new Choice() {
+            final int[] names = {R.string.graphics_custom, R.string.graphics_low, R.string.graphics_medium,
+                    R.string.graphics_high, R.string.graphics_ultra};
+            public String label() { return getString(names[prefs.graphics()]); }
+            public void change(int s) { prefs.setGraphics(wrap(prefs.graphics() + s, names.length)); }
+        });
         option(list, R.string.setting_fps, R.string.setting_fps_desc, new Choice() {
             public String label() {
                 int f = Prefs.FRAME_RATES[prefs.frameRate()];

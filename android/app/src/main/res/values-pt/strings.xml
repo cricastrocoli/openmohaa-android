@@ -30,6 +30,13 @@
     <string name="hint_change">Alterar</string>
     <string name="setting_resolution">Resolução</string>
     <string name="setting_resolution_desc">Menor é mais leve e gasta menos bateria; a imagem é ampliada para a tela.</string>
+    <string name="setting_graphics">Qualidade gráfica</string>
+    <string name="setting_graphics_desc">Menor é mais leve para aparelhos fracos: detalhe das texturas, filtragem, antialiasing, sombras, efeitos. Personalizado mantém o que você ajustou nos menus do próprio jogo.</string>
+    <string name="graphics_custom">Personalizado</string>
+    <string name="graphics_low">Baixo</string>
+    <string name="graphics_medium">Médio</string>
+    <string name="graphics_high">Alto</string>
+    <string name="graphics_ultra">Muito alto</string>
     <string name="setting_fps">Taxa de quadros</string>
     <string name="setting_fps_desc">Até 120 em telas de 120 Hz. Menos economiza bateria.</string>
     <string name="setting_scanlines">Filtro de scanlines</string>

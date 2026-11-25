@@ -37,6 +37,13 @@
     <string name="hint_change">Change</string>
     <string name="setting_resolution">Resolution</string>
     <string name="setting_resolution_desc">Lower is faster and uses less battery; the picture is scaled to the screen.</string>
+    <string name="setting_graphics">Graphics quality</string>
+    <string name="setting_graphics_desc">Lower is lighter on weaker devices: texture detail, filtering, antialiasing, shadows, effects. Custom keeps what you set in the game\'s own menus.</string>
+    <string name="graphics_custom">Custom</string>
+    <string name="graphics_low">Low</string>
+    <string name="graphics_medium">Medium</string>
+    <string name="graphics_high">High</string>
+    <string name="graphics_ultra">Very high</string>
     <string name="setting_fps">Frame rate</string>
     <string name="setting_fps_desc">Up to 120 on 120 Hz screens. Lower saves battery.</string>
     <string name="setting_scanlines">Scanline filter</string>

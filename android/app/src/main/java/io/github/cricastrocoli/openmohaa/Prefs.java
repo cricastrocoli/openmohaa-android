@@ -83,6 +83,24 @@ public final class Prefs {
         return r[0] == 0 ? new int[]{screenW, screenH} : r;
     }
 
+    // Graphics presets: 0 custom (the game's own settings, as set in its menus), then low,
+    // medium, high (the game's defaults) and very high. Each sets the same cvars, so moving
+    // between presets leaves nothing behind. The resolution is a setting of its own.
+    public static final String[] GRAPHICS_CVARS = {
+            "r_picmip", "r_textureMode", "r_ext_texture_filter_anisotropic", "r_ext_max_anisotropy",
+            "r_ext_multisample", "r_lodscale", "r_subdivisions", "cg_shadows", "r_flares", "r_drawSun",
+            "cg_effectdetail", "cg_marks_max", "vss_maxcount"};
+    public static final String[][] GRAPHICS = {
+            null,
+            {"1", "GL_LINEAR_MIPMAP_NEAREST", "0", "2", "0", "0.6", "8", "0", "0", "0", "0.4", "64", "4"},
+            {"0", "GL_LINEAR_MIPMAP_LINEAR", "0", "2", "0", "0.9", "4", "1", "0", "0", "0.7", "128", "7"},
+            {"0", "GL_LINEAR_MIPMAP_LINEAR", "0", "2", "0", "1.1", "3", "1", "0", "0", "1.0", "256", "10"},
+            {"0", "GL_LINEAR_MIPMAP_LINEAR", "1", "8", "4", "1.6", "2", "1", "1", "1", "1.0", "512", "16"},
+    };
+
+    public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
+    public void setGraphics(int g) { p.edit().putInt("graphics", g).apply(); }
+
     // Engine arguments ("+set name value" ...).
     public String[] gameArguments() {
         List<String> a = new ArrayList<>();
@@ -91,6 +109,10 @@ public final class Prefs {
             set(a, "r_mode", "-1");
             set(a, "r_customwidth", Integer.toString(r[0]));
             set(a, "r_customheight", Integer.toString(r[1]));
+        }
+        String[] g = GRAPHICS[graphics()];
+        if (g != null) {
+            for (int i = 0; i < g.length; i++) set(a, GRAPHICS_CVARS[i], g[i]);
         }
         set(a, "com_maxfps", Integer.toString(FRAME_RATES[frameRate()]));
         set(a, "com_target_game", Integer.toString(game()));
