@@ -109,7 +109,7 @@ public final class Prefs {
     public boolean hasAspect() { return p.contains("aspect"); }
     public void setAspect(int v) { p.edit().putInt("aspect", v).apply(); }
 
-    public int gyro() { return clamp(p.getInt("gyro", 0), GyroAim.SENSITIVITY.length); }
+    public int gyro() { return clamp(p.getInt("gyro", 2), GyroAim.SENSITIVITY.length); }  // medium
     public void setGyro(int v) { p.edit().putInt("gyro", v).apply(); }
 
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
