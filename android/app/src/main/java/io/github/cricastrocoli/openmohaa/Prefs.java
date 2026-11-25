@@ -117,6 +117,7 @@ public final class Prefs {
     public void setGyro(int v) { p.edit().putInt("gyroMode", v).apply(); }
 
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
+    public boolean hasGraphics() { return p.contains("graphics"); }
     public void setGraphics(int g) { p.edit().putInt("graphics", g).apply(); }
 
     // Engine arguments ("+set name value" ...).

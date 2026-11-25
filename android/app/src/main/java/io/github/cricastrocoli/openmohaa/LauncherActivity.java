@@ -97,6 +97,12 @@ public class LauncherActivity extends Activity {
         // The aspect option starts at what the screen is: "All in 4:3" on a 4:3 screen (like
         // the Retroid Pocket Nova), widescreen on wider ones. The player's choice then stays.
         if (!prefs.hasAspect() && screenW * 3 <= screenH * 4 + screenH / 10) prefs.setAspect(2);
+        // Graphics start at High on a fresh install; someone who already played (the game's
+        // own config exists) stays on Custom, so the settings made in the game's menus stay.
+        if (!prefs.hasGraphics()) {
+            boolean played = new java.io.File(GameData.modsDir(this, 0), "configs/omconfig.cfg").exists();
+            prefs.setGraphics(played ? 0 : 3);
+        }
         uiScale = Math.max(0.7f, Math.min(1f, Math.min(screenH / m.density / 450f, screenW / m.density / 820f)));
 
         FrameLayout root = new FrameLayout(this);
