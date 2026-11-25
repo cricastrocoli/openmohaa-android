@@ -1265,16 +1265,28 @@ public class LauncherActivity extends Activity {
         LinearLayout head = row();
         // A back arrow for touch (no controller: B and the D-pad aren't there, and Android's
         // back gesture isn't obvious to everyone); it goes when a controller comes.
-        TextView back = text("‹", 34, GOLD, true);
-        back.setPadding(dp(8), 0, dp(14), dp(6));
+        TextView back = text("◀", 17, GOLD, true);
+        back.setGravity(Gravity.CENTER);
+        back.setIncludeFontPadding(false);
+        back.setPadding(0, 0, dp(2), 0);
+        GradientDrawable ring = new GradientDrawable();
+        ring.setShape(GradientDrawable.OVAL);
+        ring.setColor(CARD);
+        ring.setStroke(dp(2), GOLD);
+        back.setBackground(ring);
+        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(dp(44), dp(44));
+        blp.rightMargin = dp(10);
+        blp.bottomMargin = dp(6);
+        back.setLayoutParams(blp);
         back.setContentDescription(getString(R.string.hint_back));
         back.setOnClickListener(v -> goBack());
         back.setVisibility(controllerConnected() ? View.GONE : View.VISIBLE);
         backArrow = back;
-        head.addView(back);
+        // At the right end of the title's line, under the right forefinger.
         TextView t = text(getString(title), 28, INK, true);
         t.setPadding(dp(4), 0, 0, dp(8));
-        head.addView(t);
+        head.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        head.addView(back);
         list.addView(head);
         return list;
     }
