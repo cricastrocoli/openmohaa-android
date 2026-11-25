@@ -33,6 +33,14 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
             FIRE = 7, CROUCH = 8, MENU = 14;
 
     private static native void nativeMove(float x, float y);
+    // The game's picture across the view (pixels): all of it unless the 4:3 option centres it.
+    private float gameLeft, gameWidth;
+
+    void setGameArea(float left, float width) {
+        gameLeft = left;
+        gameWidth = width;
+    }
+
     private static native void nativeAim(float dxDp, float dyDp);
     private static native void nativeAction(int action, boolean down);
     private static native void nativeMenuTouch(float x, float y, boolean down);
@@ -202,10 +210,14 @@ public class TouchControls extends View implements InputManager.InputDeviceListe
         if (inMenu) {
             // A menu: the first finger is the mouse, pressed where it lands, released where it
             // lifts (so a tap clicks there).
+            // Where on the game's picture (which may be a 4:3 area in the middle, see
+            // setGameArea), as fractions of it.
+            float gl = gameLeft, gw = gameWidth > 0 ? gameWidth : getWidth();
+            float fx = Math.max(0, Math.min(1, (x - gl) / gw)), fy = y / getHeight();
             if (action == MotionEvent.ACTION_DOWN) {
-                nativeMenuTouch(x / getWidth(), y / getHeight(), true);
+                nativeMenuTouch(fx, fy, true);
             } else if (action == MotionEvent.ACTION_UP) {
-                nativeMenuTouch(x / getWidth(), y / getHeight(), false);
+                nativeMenuTouch(fx, fy, false);
             }
             return true;
         }

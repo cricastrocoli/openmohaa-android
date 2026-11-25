@@ -37,6 +37,10 @@
     <string name="hint_change">Change</string>
     <string name="setting_resolution">Resolution</string>
     <string name="setting_resolution_desc">Lower is faster and uses less battery; the picture is scaled to the screen.</string>
+    <string name="setting_aspect">Aspect ratio</string>
+    <string name="setting_aspect_desc">Widescreen fills the screen. 4:3 is the original picture, with black bars at the sides: menus and videos aren\'t stretched, but you see less to the sides in game.</string>
+    <string name="aspect_wide">Widescreen</string>
+    <string name="aspect_43">4:3</string>
     <string name="setting_graphics">Graphics quality</string>
     <string name="setting_graphics_desc">Lower is lighter on weaker devices: texture detail, filtering, shadows, detail at a distance, effects. Custom keeps what you set in the game\'s own menus.</string>
     <string name="graphics_custom">Custom</string>

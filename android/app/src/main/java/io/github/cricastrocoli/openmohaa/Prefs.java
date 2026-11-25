@@ -104,6 +104,9 @@ public final class Prefs {
     public int hudSize() { return clamp(p.getInt("hudSize", 1), HUD_SIZES.length); }  // 125%
     public void setHudSize(int v) { p.edit().putInt("hudSize", v).apply(); }
 
+    public int aspect() { return clamp(p.getInt("aspect", 0), 2); }  // 0 widescreen, 1 4:3
+    public void setAspect(int v) { p.edit().putInt("aspect", v).apply(); }
+
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
     public void setGraphics(int g) { p.edit().putInt("graphics", g).apply(); }
 

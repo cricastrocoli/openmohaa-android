@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.Display;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -22,6 +23,9 @@ public class GameActivity extends SDLActivity {
     public static final String EXTRA_HEIGHT = "height";
     public static final String EXTRA_FPS = "fps";  // the frame rate cap; 0 = unlimited
     public static final String EXTRA_TOUCH = "touch";  // TouchControls.AUTO / ALWAYS / NEVER
+    private TouchControls touch;
+
+    public static final String EXTRA_ASPECT = "aspect";  // 0 = the screen's own, 1 = 4:3
     public static final String EXTRA_SCANLINES = "scanlines";  // 0 = off, up to strong (ScanlineView)
 
     @Override
@@ -35,7 +39,8 @@ public class GameActivity extends SDLActivity {
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         }
         // Touch controls and menu taps, over the game (see TouchControls).
-        addContentView(new TouchControls(this, getIntent().getIntExtra(EXTRA_TOUCH, TouchControls.AUTO)),
+        touch = new TouchControls(this, getIntent().getIntExtra(EXTRA_TOUCH, TouchControls.AUTO));
+        addContentView(touch,
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         hideSystemBars();
     }
@@ -72,6 +77,26 @@ public class GameActivity extends SDLActivity {
         }
         // A lower render resolution: the GPU draws fewer pixels and the display scales them up.
         int w = getIntent().getIntExtra(EXTRA_WIDTH, 0), h = getIntent().getIntExtra(EXTRA_HEIGHT, 0);
+        // 4:3, like the original game on a CRT: a 4:3 picture in the middle of a wider screen,
+        // black at the sides (the game then renders 4:3 itself, menus and all).
+        if (getIntent().getIntExtra(EXTRA_ASPECT, 0) == 1 && mSurface != null) {
+            android.util.DisplayMetrics m = new android.util.DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getRealMetrics(m);
+            int sw = Math.max(m.widthPixels, m.heightPixels), sh = Math.min(m.widthPixels, m.heightPixels);
+            if (sw * 3 > sh * 4) {  // wider than 4:3
+                int rh = h > 0 ? h : sh;
+                mSurface.getHolder().setFixedSize(rh * 4 / 3, rh);
+                android.widget.RelativeLayout.LayoutParams lp =
+                        new android.widget.RelativeLayout.LayoutParams(sh * 4 / 3, sh);
+                lp.addRule(android.widget.RelativeLayout.CENTER_IN_PARENT);
+                mSurface.setLayoutParams(lp);
+                if (touch != null) touch.setGameArea((sw - sh * 4 / 3) / 2f, sh * 4 / 3);
+                // Black bars, not the window's theme background.
+                getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK));
+                if (mSurface.getParent() instanceof View) ((View) mSurface.getParent()).setBackgroundColor(android.graphics.Color.BLACK);
+                return;
+            }
+        }
         if (w > 0 && h > 0 && mSurface != null) {
             mSurface.getHolder().setFixedSize(w, h);
             // The view must still fill the screen (SDL adds it wrapping its content, which with
