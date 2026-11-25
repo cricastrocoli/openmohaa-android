@@ -1263,6 +1263,8 @@ public class LauncherActivity extends Activity {
         list.setOrientation(LinearLayout.VERTICAL);
         list.setPadding(0, dp(14), dp(6), dp(10));
         LinearLayout head = row();
+        head.setClipChildren(false);
+        head.setClipToPadding(false);
         // A back arrow for touch (no controller: B and the D-pad aren't there, and Android's
         // back gesture isn't obvious to everyone); it goes when a controller comes.
         TextView back = text("◀", 17, GOLD, true);
@@ -1276,7 +1278,8 @@ public class LauncherActivity extends Activity {
         back.setBackground(ring);
         LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(dp(44), dp(44));
         blp.rightMargin = dp(10);
-        blp.bottomMargin = dp(6);
+        blp.topMargin = dp(4);
+        blp.bottomMargin = dp(10);
         back.setLayoutParams(blp);
         back.setContentDescription(getString(R.string.hint_back));
         back.setOnClickListener(v -> goBack());
