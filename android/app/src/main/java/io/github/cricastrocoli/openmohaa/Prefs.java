@@ -9,7 +9,9 @@ import java.util.List;
 // The launcher's settings, kept in SharedPreferences, and the engine arguments they become.
 public final class Prefs {
     // Render sizes: 0 = the screen's own (native). Others are 16:9.
-    public static final int[][] RESOLUTIONS = {{0, 0}, {1600, 900}, {1280, 720}, {960, 540}};
+    // Render heights below the screen's own (0 = native); the width follows the screen's shape,
+    // so a 4:3 screen gets 960x720, a 16:9 one 1280x720.
+    public static final int[] RESOLUTIONS = {0, 900, 720, 540};
     // Frame rate caps: 0 = unlimited.
     public static final int[] FRAME_RATES = {30, 60, 90, 120, 0};
     public static final int[] AIM_SPEEDS = {50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150};
@@ -77,10 +79,11 @@ public final class Prefs {
         e.apply();
     }
 
-    // The render size for a resolution choice: the screen's own for "native".
+    // The size for a resolution choice on this screen: the screen's own for "native".
     public static int[] size(int choice, int screenW, int screenH) {
-        int[] r = RESOLUTIONS[choice];
-        return r[0] == 0 ? new int[]{screenW, screenH} : r;
+        int h = RESOLUTIONS[choice];
+        if (h == 0 || h >= screenH) return new int[]{screenW, screenH};
+        return new int[]{Math.round(h * (float) screenW / screenH / 2) * 2, h};
     }
 
     // Graphics presets: 0 custom (the game's own settings, as set in its menus), then low,
@@ -120,11 +123,17 @@ public final class Prefs {
     // The game's render size: the resolution setting (the screen's own for "native"), made
     // 4:3 by the aspect option on a wider screen ({0, 0} = the screen's own, nothing to set).
     public int[] renderSize(int screenW, int screenH) {
-        int[] r = RESOLUTIONS[resolution()];
-        int w = r[0] != 0 ? r[0] : screenW, h = r[0] != 0 ? r[1] : screenH;
+        int[] r = size(resolution(), screenW, screenH);
+        int w = r[0], h = r[1];
         boolean four3 = aspect() == 2 && w * 3 > h * 4;
         if (four3) w = (h * 4 / 3) & ~1;
-        return r[0] == 0 && !four3 ? new int[]{0, 0} : new int[]{w, h};
+        return w == screenW && h == screenH ? new int[]{0, 0} : new int[]{w, h};
+    }
+
+    // The size the game renders at, for showing (the screen's own when native).
+    public int[] shownSize(int screenW, int screenH) {
+        int[] r = renderSize(screenW, screenH);
+        return r[0] == 0 ? new int[]{screenW, screenH} : r;
     }
 
     public String[] gameArguments(int screenW, int screenH) {

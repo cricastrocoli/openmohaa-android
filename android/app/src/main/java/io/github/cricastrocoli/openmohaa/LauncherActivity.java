@@ -302,8 +302,8 @@ public class LauncherActivity extends Activity {
     }
 
     private String summary() {
-        int[] r = Prefs.RESOLUTIONS[prefs.resolution()];
-        String res = r[0] == 0 ? getString(R.string.res_native, screenW, screenH)
+        int[] r = prefs.shownSize(screenW, screenH);
+        String res = Prefs.RESOLUTIONS[prefs.resolution()] == 0 ? getString(R.string.res_native, r[0], r[1])
                 : getString(R.string.res_size, r[0], r[1]);
         int f = Prefs.FRAME_RATES[prefs.frameRate()];
         String fps = f == 0 ? getString(R.string.fps_unlimited) : getString(R.string.fps_value, f);
@@ -404,8 +404,10 @@ public class LauncherActivity extends Activity {
         section(list, R.string.section_video);
         option(list, R.string.setting_resolution, R.string.setting_resolution_desc, new Choice() {
             public String label() {
-                int[] r = Prefs.RESOLUTIONS[prefs.resolution()];
-                return r[0] == 0 ? getString(R.string.res_native, screenW, screenH) : getString(R.string.res_size, r[0], r[1]);
+                // The size the game will render at (the aspect option may narrow it to 4:3).
+                int[] r = prefs.shownSize(screenW, screenH);
+                return Prefs.RESOLUTIONS[prefs.resolution()] == 0 ? getString(R.string.res_native, r[0], r[1])
+                        : getString(R.string.res_size, r[0], r[1]);
             }
             public void change(int s) { prefs.setResolution(wrap(prefs.resolution() + s, Prefs.RESOLUTIONS.length)); }
         });
