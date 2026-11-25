@@ -465,7 +465,19 @@ public class LauncherActivity extends Activity {
         r.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         TextView value = text("◀  " + c.label() + "  ▶", 17, GOLD, true);
         r.addView(value);
-        focusable(r, new TextView[]{l, d, value}, v -> { c.change(1); value.setText("◀  " + c.label() + "  ▶"); });
+        // A tap: on the value's left half (◀) goes back, anywhere else forward. (Touch had no
+        // way back: the aim speed, which doesn't wrap around, stuck at its top value.)
+        float[] tapX = {-1};
+        r.setOnTouchListener((v, e) -> {
+            if (e.getActionMasked() == MotionEvent.ACTION_UP) tapX[0] = e.getX();
+            return false;
+        });
+        focusable(r, new TextView[]{l, d, value}, v -> {
+            boolean back = tapX[0] >= 0 && tapX[0] < value.getLeft() + value.getWidth() / 2f;
+            tapX[0] = -1;
+            c.change(back ? -1 : 1);
+            value.setText("◀  " + c.label() + "  ▶");
+        });
         r.setOnKeyListener((v, code, e) -> {
             if (e.getAction() != KeyEvent.ACTION_DOWN) return false;
             int step = code == KeyEvent.KEYCODE_DPAD_LEFT ? -1 : code == KeyEvent.KEYCODE_DPAD_RIGHT ? 1 : 0;
