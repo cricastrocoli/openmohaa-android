@@ -39,6 +39,11 @@
     <string name="setting_resolution_desc">Lower is faster and uses less battery; the picture is scaled to the screen.</string>
     <string name="setting_fps">Frame rate</string>
     <string name="setting_fps_desc">Up to 120 on 120 Hz screens. Lower saves battery.</string>
+    <string name="setting_scanlines">Scanline filter</string>
+    <string name="setting_scanlines_desc">Dark lines across the image, like an old CRT monitor. No cost in performance.</string>
+    <string name="scanlines_light">Light</string>
+    <string name="scanlines_medium">Medium</string>
+    <string name="scanlines_strong">Strong</string>
     <string name="setting_aim">Aim speed</string>
     <string name="setting_aim_desc">How fast the right stick turns.</string>
     <string name="setting_invert">Invert vertical aim</string>

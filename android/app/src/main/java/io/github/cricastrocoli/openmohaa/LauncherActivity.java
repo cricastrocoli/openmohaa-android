@@ -412,6 +412,11 @@ public class LauncherActivity extends Activity {
             }
             public void change(int s) { prefs.setFrameRate(wrap(prefs.frameRate() + s, Prefs.FRAME_RATES.length)); }
         });
+        option(list, R.string.setting_scanlines, R.string.setting_scanlines_desc, new Choice() {
+            final int[] names = {R.string.off, R.string.scanlines_light, R.string.scanlines_medium, R.string.scanlines_strong};
+            public String label() { return getString(names[prefs.scanlines()]); }
+            public void change(int s) { prefs.setScanlines(wrap(prefs.scanlines() + s, names.length)); }
+        });
         option(list, R.string.setting_aim, R.string.setting_aim_desc, new Choice() {
             public String label() { return Prefs.AIM_SPEEDS[prefs.aimSpeed()] + "%"; }
             public void change(int s) { prefs.setAimSpeed(Math.max(0, Math.min(Prefs.AIM_SPEEDS.length - 1, prefs.aimSpeed() + s))); }
@@ -884,6 +889,7 @@ public class LauncherActivity extends Activity {
         i.putExtra(GameActivity.EXTRA_HEIGHT, r[1]);
         i.putExtra(GameActivity.EXTRA_FPS, Prefs.FRAME_RATES[prefs.frameRate()]);
         i.putExtra(GameActivity.EXTRA_TOUCH, prefs.touchMode());
+        i.putExtra(GameActivity.EXTRA_SCANLINES, prefs.scanlines());
         startActivity(i);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }

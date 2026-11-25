@@ -42,6 +42,8 @@ public final class Prefs {
     public void setGarandReload(boolean b) { p.edit().putBoolean("garandReload", b).apply(); }
 
     // Touch controls: TouchControls.AUTO (only without a controller), ALWAYS or NEVER.
+    public int scanlines() { return clamp(p.getInt("scanlines", 0), ScanlineView.LEVELS.length); }
+    public void setScanlines(int v) { p.edit().putInt("scanlines", v).apply(); }
     public int touchMode() { return clamp(p.getInt("touchMode", TouchControls.AUTO), 3); }
     public void setTouchMode(int m) { p.edit().putInt("touchMode", m).apply(); }
 

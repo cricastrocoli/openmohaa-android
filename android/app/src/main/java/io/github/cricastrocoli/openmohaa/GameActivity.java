@@ -22,11 +22,18 @@ public class GameActivity extends SDLActivity {
     public static final String EXTRA_HEIGHT = "height";
     public static final String EXTRA_FPS = "fps";  // the frame rate cap; 0 = unlimited
     public static final String EXTRA_TOUCH = "touch";  // TouchControls.AUTO / ALWAYS / NEVER
+    public static final String EXTRA_SCANLINES = "scanlines";  // 0 = off, up to strong (ScanlineView)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestRefreshRate();
+        // Scanlines over the game's image, under the touch controls.
+        int scanlines = getIntent().getIntExtra(EXTRA_SCANLINES, 0);
+        if (scanlines > 0) {
+            addContentView(new ScanlineView(this, scanlines), new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
         // Touch controls and menu taps, over the game (see TouchControls).
         addContentView(new TouchControls(this, getIntent().getIntExtra(EXTRA_TOUCH, TouchControls.AUTO)),
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));

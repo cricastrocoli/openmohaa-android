@@ -32,6 +32,11 @@
     <string name="setting_resolution_desc">Menor é mais leve e gasta menos bateria; a imagem é ampliada para a tela.</string>
     <string name="setting_fps">Taxa de quadros</string>
     <string name="setting_fps_desc">Até 120 em telas de 120 Hz. Menos economiza bateria.</string>
+    <string name="setting_scanlines">Filtro de scanlines</string>
+    <string name="setting_scanlines_desc">Linhas escuras na imagem, como num monitor CRT antigo. Não pesa no desempenho.</string>
+    <string name="scanlines_light">Leve</string>
+    <string name="scanlines_medium">Médio</string>
+    <string name="scanlines_strong">Forte</string>
     <string name="setting_aim">Velocidade da mira</string>
     <string name="setting_aim_desc">O quanto o analógico direito gira a visão.</string>
     <string name="setting_invert">Inverter mira vertical</string>
