@@ -98,6 +98,8 @@
     <string name="files_gog_noexe">Escolha também o arquivo .exe do instalador, junto com os arquivos .bin.</string>
     <string name="files_gog_missing">Faltam partes do instalador. Escolha o .exe e todos os arquivos .bin que vieram com ele (por exemplo setup_…-1.bin e setup_…-2.bin).</string>
     <string name="files_nospace">Não há espaço livre suficiente: são necessários %1$s.</string>
+    <string name="setting_aimassist">Mira assistida</string>
+    <string name="setting_aimassist_desc">Só na campanha. Você controla a mira; quando ela passa sobre um inimigo, desacelera e acompanha o alvo, com um leve toque em direção ao tórax. Nunca no multiplayer.</string>
     <string name="setting_garand">Recarregar o rifle a qualquer momento</string>
     <string name="setting_garand_desc">No jogo original, o M1 Garand só recarrega com o pente vazio. Ligado, ele recarrega como as outras armas (campanha).</string>
     <string name="refresh_capped">Tela limitada a 60 Hz nas configurações</string>

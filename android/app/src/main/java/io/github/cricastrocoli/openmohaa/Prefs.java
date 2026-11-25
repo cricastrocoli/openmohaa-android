@@ -38,6 +38,8 @@ public final class Prefs {
     public void setAimSpeed(int i) { p.edit().putInt("aimSpeed", i).apply(); }
 
     // The M1 Garand can be reloaded before its clip is empty (single player).
+    public boolean aimAssist() { return p.getBoolean("aimAssist", false); }
+    public void setAimAssist(boolean b) { p.edit().putBoolean("aimAssist", b).apply(); }
     public boolean garandReload() { return p.getBoolean("garandReload", false); }
     public void setGarandReload(boolean b) { p.edit().putBoolean("garandReload", b).apply(); }
 
@@ -95,6 +97,7 @@ public final class Prefs {
         set(a, "rp_aim_scale", Float.toString(AIM_SPEEDS[aimSpeed()] / 100f));
         set(a, "rp_aim_invert", invertAim() ? "1" : "0");
         set(a, "g_garandreload", garandReload() ? "1" : "0");
+        set(a, "rp_aimassist", aimAssist() ? "1" : "0");
         StringBuilder map = new StringBuilder();
         for (int i = 0; i < ACTIONS.length; i++) {
             if (i > 0) map.append(',');

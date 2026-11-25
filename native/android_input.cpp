@@ -20,6 +20,19 @@
 //   rp_move_deadzone            left stick dead zone (0.15)
 //   rp_cursor_speed             menu pointer speed at full deflection, pixels/second (1400)
 //   rp_touch_aim                touch aiming: degrees turned per dp the finger moves (0.20)
+//   rp_aimassist                aim assist in single player, set by the launcher (0)
+//   rp_aa_slow                  aim speed with the crosshair over an enemy, as a fraction (0.75)
+//   rp_aa_fulldist / rp_aa_maxdist  full help up to this distance, fading to none at the
+//                               second (605 / 1330 units, about 15 m / 34 m)
+//   rp_aa_track                 how much of the enemy's movement the crosshair follows (0.65)
+//   rp_aa_nudge                 seconds of the nudge toward the chest on reaching an enemy (0.12)
+//
+// Aim assist, like a "free aim, assisted" mode: the crosshair is the player's alone until it
+// is over an enemy's body (the game names the nearest one in rp_aimtarget, see
+// fgame/player.cpp UpdateAimAssist). Over it, aiming slows down (friction) and the crosshair
+// follows the enemy's movement and the player's, keeping the spot aimed at (so the player can
+// still go for the head); on reaching the body there's a short nudge toward the chest, never
+// the head. Never in multiplayer.
 //
 // Touch (TouchControls.java, an Android view over the game): it sets a move vector, adds aim
 // movement and presses actions through the JNI functions at the end; this file applies them
@@ -29,6 +42,7 @@
 #include "client.h"
 
 #include <string.h>
+#include <stdio.h>
 
 #include <math.h>
 #include "SDL.h"
@@ -37,6 +51,7 @@ static SDL_GameController* pad;
 static cvar_t* buttonMap;
 static void loadButtonMap(void);
 
+static cvar_t *aaOn, *aaSlow, *aaTrack, *aaNudge, *aaTarget, *gametype, *aaFull, *aaMax;
 static cvar_t *aimScale, *aimYaw, *aimPitch, *aimDead, *aimOuter, *aimCurve, *rampDelay, *rampTime, *rampBoost,
               *aimInvert, *moveDead, *cursorSpeed, *touchAim;
 
@@ -48,6 +63,14 @@ static void registerCvars(void) {
     buttonMap   = Cvar_Get("rp_map", "", CVAR_ARCHIVE);
     loadButtonMap();
     aimScale    = Cvar_Get("rp_aim_scale", "1.0", CVAR_ARCHIVE);
+    aaOn        = Cvar_Get("rp_aimassist", "0", 0);
+    aaSlow      = Cvar_Get("rp_aa_slow", "0.75", 0);
+    aaFull      = Cvar_Get("rp_aa_fulldist", "605", 0);
+    aaMax       = Cvar_Get("rp_aa_maxdist", "1330", 0);
+    aaTrack     = Cvar_Get("rp_aa_track", "0.65", 0);
+    aaNudge     = Cvar_Get("rp_aa_nudge", "0.12", 0);
+    aaTarget    = Cvar_Get("rp_aimtarget", "", 0);
+    gametype    = Cvar_Get("g_gametype", "0", 0);
     aimYaw      = Cvar_Get("rp_aim_yaw", "200", CVAR_ARCHIVE);
     aimPitch    = Cvar_Get("rp_aim_pitch", "140", CVAR_ARCHIVE);
     aimDead     = Cvar_Get("rp_aim_deadzone", "0.12", CVAR_ARCHIVE);
@@ -434,15 +457,90 @@ static void addMove(usercmd_t* cmd, float x, float y) {
     cmd->rightmove = (signed char) (side < -127 ? -127 : side > 127 ? 127 : side);
 }
 
+// Aim assist state: the enemy under the crosshair last frame and where it was (angles from
+// the eye), and how long the entry nudge still runs.
+static int aaNum = -1;
+static float aaYaw, aaPitch, aaNudgeLeft;
+
+// Whether the crosshair is over the named enemy's body; err gets the angle to its chest
+// {yaw, pitch}, at gets the chest's angles from the eye.
+static bool aimOver(int* num, float* err, float* at, float* strength) {
+    if (!aaOn || !aaOn->integer || gametype->integer != 0 || !aaTarget->string[0]) return false;
+    vec3_t chest, eye, dir, ang;
+    float bottom, top;
+    if (sscanf(aaTarget->string, "%d %f %f %f %f %f", num, &chest[0], &chest[1], &chest[2], &bottom, &top) != 6)
+        return false;
+    // The eye: the player's origin plus view height (vEyePos isn't sent to the client).
+    VectorCopy(cl.snap.ps.origin, eye);
+    eye[2] += cl.snap.ps.viewheight;
+    VectorSubtract(chest, eye, dir);
+    float flat = sqrtf(dir[0] * dir[0] + dir[1] * dir[1]);
+    if (flat < 8) return false;
+    // Full help up close, fading out with distance.
+    float dist = VectorLength(dir), full = aaFull->value, far = aaMax->value;
+    *strength = dist <= full ? 1.0f : dist >= far ? 0.0f : (far - dist) / (far - full);
+    if (*strength <= 0) return false;
+    vectoangles(dir, ang);
+    at[0] = ang[YAW];
+    at[1] = ang[PITCH];
+    // The view's direction: the command angles plus the game's delta_angles (set when the
+    // player spawns or is turned by the game), as the engine itself combines them.
+    float viewYaw = cl.viewangles[YAW] + SHORT2ANGLE(cl.snap.ps.delta_angles[YAW]);
+    float viewPitch = cl.viewangles[PITCH] + SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]);
+    err[0] = AngleSubtract(ang[YAW], viewYaw);
+    err[1] = AngleSubtract(ang[PITCH], viewPitch);
+    // The body's extent seen from the eye: about 20 units either side, feet to head, plus a
+    // degree of margin. (Pitch grows downward.)
+    float half = RAD2DEG(atanf(20.0f / flat)) + 1.0f;
+    float pTop = -RAD2DEG(atan2f(top - eye[2], flat)) - 1.0f;
+    float pBottom = -RAD2DEG(atan2f(bottom - eye[2], flat)) + 1.0f;
+    float pitch = AngleNormalize180(viewPitch);
+    return fabsf(err[0]) < half && pitch > pTop && pitch < pBottom;
+}
+
+// Runs once a frame before the aim input: returns the aim speed factor (friction), and moves
+// the crosshair with the enemy (tracking) and toward the chest on arrival (nudge).
+static float aimAssist(float dt) {
+    int num;
+    float err[2], at[2], strength;
+    if (dt <= 0 || !aimOver(&num, err, at, &strength)) {
+        aaNum = -1;
+        return 1.0f;
+    }
+    if (num == aaNum) {
+        // Tracking: follow the chest's movement since last frame (the enemy's and the
+        // player's), keeping the offset the player chose. Capped, in case of a jump.
+        float dy = AngleSubtract(at[0], aaYaw), dp = AngleSubtract(at[1], aaPitch);
+        float k = aaTrack->value * strength;
+        if (fabsf(dy) < 5 && fabsf(dp) < 5) {
+            cl.viewangles[YAW] += dy * k;
+            cl.viewangles[PITCH] += dp * k;
+        }
+    } else {
+        aaNudgeLeft = strength > 0.5f ? aaNudge->value : 0;  // just reached this enemy
+    }
+    if (aaNudgeLeft > 0) {
+        // Nudge: a short, gentle move toward the chest (a quarter of the gap per 0.1 s).
+        float f = fminf(1.0f, dt * 2.5f);
+        cl.viewangles[YAW] += err[0] * f;
+        cl.viewangles[PITCH] += err[1] * f;
+        aaNudgeLeft -= dt;
+    }
+    aaNum = num;
+    aaYaw = at[0];
+    aaPitch = at[1];
+    return 1.0f - (1.0f - aaSlow->value) * strength;
+}
+
 // Touch: the stick's move and the finger movement for aiming since the last frame.
-static void touchMove(usercmd_t* cmd) {
+static void touchMove(usercmd_t* cmd, float slow) {
     SDL_AtomicLock(&touchLock);
     float mx = touchMoveX, my = touchMoveY, ax = touchAimX, ay = touchAimY;
     touchAimX = touchAimY = 0;
     SDL_AtomicUnlock(&touchLock);
     if (mx || my) addMove(cmd, mx, my);
     if (ax || ay) {
-        float deg = touchAim->value * aimScale->value * zoomScale();
+        float deg = touchAim->value * aimScale->value * zoomScale() * slow;
         cl.viewangles[YAW] -= ax * deg;
         cl.viewangles[PITCH] += (aimInvert->integer ? -ay : ay) * deg;
     }
@@ -456,11 +554,15 @@ extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
         SDL_AtomicUnlock(&touchLock);
         return;
     }
-    touchMove(cmd);
-    if (!pad) { rampHeld = 0; return; }
     float dt = frame_msec / 1000.0f;
-    if (dt <= 0) return;
     if (dt > 0.1f) dt = 0.1f;
+
+    // Aim assist (single player, if on): see aimAssist.
+    float slow = aimAssist(dt);
+    touchMove(cmd, slow);
+
+    if (!pad) { rampHeld = 0; return; }
+    if (dt <= 0) return;
 
     // Move: the left stick, analog, added to whatever the keys did.
     float dx, dy;
@@ -491,8 +593,8 @@ extern "C" void CL_AndroidMove(usercmd_t* cmd, float frame_msec) {
 
     float zoom = zoomScale();
 
-    float yawRate = aimYaw->value * aimScale->value * curved * (1.0f + boost) * zoom;
-    float pitchRate = aimPitch->value * aimScale->value * curved * zoom;
+    float yawRate = aimYaw->value * aimScale->value * curved * (1.0f + boost) * zoom * slow;
+    float pitchRate = aimPitch->value * aimScale->value * curved * zoom * slow;
     cl.viewangles[YAW] -= dx * yawRate * dt;
     cl.viewangles[PITCH] += (aimInvert->integer ? -dy : dy) * pitchRate * dt;
 }
