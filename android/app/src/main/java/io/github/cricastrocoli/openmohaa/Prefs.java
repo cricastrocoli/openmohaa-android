@@ -101,7 +101,7 @@ public final class Prefs {
     };
 
     public static final int[] HUD_SIZES = {100, 125, 150};
-    public int hudSize() { return clamp(p.getInt("hudSize", 0), HUD_SIZES.length); }
+    public int hudSize() { return clamp(p.getInt("hudSize", 1), HUD_SIZES.length); }  // 125%
     public void setHudSize(int v) { p.edit().putInt("hudSize", v).apply(); }
 
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
