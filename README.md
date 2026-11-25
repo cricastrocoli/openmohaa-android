@@ -264,8 +264,8 @@ it) to the device and use **Import from a folder** or **Import from files**.
 
 ## Known issues
 
-- Hosting on Android works for LAN matches; hosting for the internet hasn't been tested.
-- Multiplayer has been tested on a few public servers and in LAN matches between two devices.
+- Multiplayer has been tested on public servers, in a match hosted on a device and in LAN
+  matches between two devices.
 
 ## Building from source
 

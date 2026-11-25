@@ -272,10 +272,8 @@ para o aparelho e usar **Importar de uma pasta** ou **Importar de arquivos**.
 
 ## Problemas conhecidos
 
-- Criar partidas no Android funciona em rede local; criar partidas para a internet não foi
-  testado.
-- O multiplayer foi testado em alguns servidores públicos e em partidas em rede local entre dois
-  aparelhos.
+- O multiplayer foi testado em servidores públicos, numa partida criada no aparelho e em
+  partidas em rede local entre dois aparelhos.
 
 ## Compilar a partir do código-fonte
 
