@@ -63,7 +63,7 @@ final class GyroAim implements SensorEventListener {
         if (sx == 0 && sy == 0) return;
         float k = (float) Math.toDegrees(dt) * scale;
         try {
-            nativeGyro(-sy * k, -sx * k);  // yaw left +, pitch down + (both were reversed)
+            nativeGyro(sy * k, -sx * k);  // yaw left +, pitch down +
         } catch (UnsatisfiedLinkError ignored) {
         }
     }
