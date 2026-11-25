@@ -39,6 +39,8 @@
     <string name="graphics_ultra">Muito alto</string>
     <string name="setting_fps">Taxa de quadros</string>
     <string name="setting_fps_desc">Até 120 em telas de 120 Hz. Menos economiza bateria.</string>
+    <string name="setting_hud">Tamanho do HUD</string>
+    <string name="setting_hud_desc">Vida, munição, bússola e mensagens na tela, maiores para telas pequenas.</string>
     <string name="setting_scanlines">Filtro de scanlines</string>
     <string name="setting_scanlines_desc">Linhas escuras na imagem, como num monitor CRT antigo. Não pesa no desempenho.</string>
     <string name="scanlines_light">Leve</string>

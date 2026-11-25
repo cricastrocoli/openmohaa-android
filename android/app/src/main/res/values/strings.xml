@@ -46,6 +46,8 @@
     <string name="graphics_ultra">Very high</string>
     <string name="setting_fps">Frame rate</string>
     <string name="setting_fps_desc">Up to 120 on 120 Hz screens. Lower saves battery.</string>
+    <string name="setting_hud">HUD size</string>
+    <string name="setting_hud_desc">Health, ammo, compass and on-screen messages, bigger for small screens.</string>
     <string name="setting_scanlines">Scanline filter</string>
     <string name="setting_scanlines_desc">Dark lines across the image, like an old CRT monitor. No cost in performance.</string>
     <string name="scanlines_light">Light</string>

@@ -100,6 +100,10 @@ public final class Prefs {
             {"0", "GL_LINEAR_MIPMAP_LINEAR", "1", "8", "0", "1.6", "2", "1", "1", "1", "1.0", "512", "16"},
     };
 
+    public static final int[] HUD_SIZES = {100, 125, 150};
+    public int hudSize() { return clamp(p.getInt("hudSize", 0), HUD_SIZES.length); }
+    public void setHudSize(int v) { p.edit().putInt("hudSize", v).apply(); }
+
     public int graphics() { return clamp(p.getInt("graphics", 0), GRAPHICS.length); }
     public void setGraphics(int g) { p.edit().putInt("graphics", g).apply(); }
 
@@ -116,6 +120,7 @@ public final class Prefs {
         if (g != null) {
             for (int i = 0; i < g.length; i++) set(a, GRAPHICS_CVARS[i], g[i]);
         }
+        set(a, "rp_hudscale", Float.toString(HUD_SIZES[hudSize()] / 100f));
         set(a, "com_maxfps", Integer.toString(FRAME_RATES[frameRate()]));
         set(a, "com_target_game", Integer.toString(game()));
         set(a, "rp_aim_scale", Float.toString(AIM_SPEEDS[aimSpeed()] / 100f));

@@ -418,6 +418,10 @@ public class LauncherActivity extends Activity {
             }
             public void change(int s) { prefs.setFrameRate(wrap(prefs.frameRate() + s, Prefs.FRAME_RATES.length)); }
         });
+        option(list, R.string.setting_hud, R.string.setting_hud_desc, new Choice() {
+            public String label() { return Prefs.HUD_SIZES[prefs.hudSize()] + "%"; }
+            public void change(int s) { prefs.setHudSize(wrap(prefs.hudSize() + s, Prefs.HUD_SIZES.length)); }
+        });
         option(list, R.string.setting_scanlines, R.string.setting_scanlines_desc, new Choice() {
             final int[] names = {R.string.off, R.string.scanlines_light, R.string.scanlines_medium, R.string.scanlines_strong};
             public String label() { return getString(names[prefs.scanlines()]); }
