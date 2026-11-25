@@ -11,8 +11,8 @@ android {
         applicationId "io.github.cricastrocoli.openmohaa"
         minSdkVersion 26
         targetSdkVersion 35
-        versionCode 6
-        versionName "1.2.1"
+        versionCode 7
+        versionName "1.2.2"
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_PLATFORM=android-26", "-DANDROID_STL=c++_shared", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_PROJECT_openmohaa_INCLUDE=" + file('../../native/android.cmake').absolutePath
