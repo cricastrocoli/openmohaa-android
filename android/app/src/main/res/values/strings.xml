@@ -38,10 +38,10 @@
     <string name="setting_resolution">Resolution</string>
     <string name="setting_resolution_desc">Lower is faster and uses less battery; the picture is scaled to the screen.</string>
     <string name="setting_aspect">Aspect ratio</string>
-    <string name="setting_aspect_desc">Widescreen fills the screen (menus and videos stretched). Menus in 4:3: menus, videos and loading screens unstretched, play in widescreen. All in 4:3: the original picture, black bars at the sides, less to see to the sides in play.</string>
+    <string name="setting_aspect_desc">Widescreen fills the screen (menus and videos stretched). Menus in 4:3: menus, videos and loading screens unstretched, play in widescreen. 4:3: the original picture, black bars at the sides, less to see to the sides in play.</string>
     <string name="aspect_wide">Widescreen</string>
     <string name="aspect_menus43">Menus in 4:3</string>
-    <string name="aspect_43">All in 4:3</string>
+    <string name="aspect_43">4:3</string>
     <string name="setting_graphics">Graphics quality</string>
     <string name="setting_graphics_desc">Lower is lighter on weaker devices: texture detail, filtering, shadows, detail at a distance, effects. Custom keeps what you set in the game\'s own menus.</string>
     <string name="graphics_custom">Custom</string>
