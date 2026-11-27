@@ -28,7 +28,7 @@
 //   rp_aa_track                 how much of the enemy's movement the crosshair follows (0.65)
 //   rp_aa_nudge                 seconds of the nudge toward the chest on reaching an enemy (0.12)
 //   rp_aa_v*                    the same on a moving vehicle's gun (the truck), much stronger:
-//                               vslow 0.4, vfulldist / vmaxdist 1200 / 2400, vtrack 1, vpull
+//                               vslow 0.4, vfulldist / vmaxdist 2400 / 4000, vtrack 1, vpull
 //                               (how fast the crosshair is drawn to the chest, per second) 3,
 //                               vmargin (degrees around the body that still count) 3
 //
@@ -78,8 +78,8 @@ static void registerCvars(void) {
     aaNudge     = Cvar_Get("rp_aa_nudge", "0.12", 0);
     aaTarget    = Cvar_Get("rp_aimtarget", "", 0);
     aaVSlow     = Cvar_Get("rp_aa_vslow", "0.4", 0);
-    aaVFull     = Cvar_Get("rp_aa_vfulldist", "1200", 0);
-    aaVMax      = Cvar_Get("rp_aa_vmaxdist", "2400", 0);
+    aaVFull     = Cvar_Get("rp_aa_vfulldist", "2400", 0);
+    aaVMax      = Cvar_Get("rp_aa_vmaxdist", "4000", 0);
     aaVTrack    = Cvar_Get("rp_aa_vtrack", "1", 0);
     aaVPull     = Cvar_Get("rp_aa_vpull", "3", 0);
     aaVMargin   = Cvar_Get("rp_aa_vmargin", "3", 0);
@@ -524,9 +524,8 @@ static bool aimOver(int* num, float* err, float* at, float* strength, bool* vehi
     if (n < 6) return false;
     *vehicle = n >= 10 && onVehicle && (cl.snap.ps.pm_flags & PMF_TURRET);
     if (*vehicle) {
-        // On a turret (fixed or on a vehicle) the view is the turret's camera, which only the
-        // game knows: it sends its position along.
-        VectorCopy(view, eye);
+        // On a vehicle's gun the view is the turret's camera.
+        VectorCopy(cl.snap.ps.camera_origin, eye);
     } else {
         // The eye: the player's origin plus view height (vEyePos isn't sent to the client).
         VectorCopy(cl.snap.ps.origin, eye);
@@ -547,6 +546,20 @@ static bool aimOver(int* num, float* err, float* at, float* strength, bool* vehi
     // player spawns or is turned by the game), as the engine itself combines them.
     float viewYaw = cl.viewangles[YAW] + SHORT2ANGLE(cl.snap.ps.delta_angles[YAW]);
     float viewPitch = cl.viewangles[PITCH] + SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]);
+    if (*vehicle) {
+        // The turret's camera can point a few degrees away from those angles (the vehicle
+        // turns under it); the snapshot has its angles. Measure the difference once per
+        // snapshot and apply it, so aim moves made since then still count.
+        static int snapTime = -1;
+        static float offYaw, offPitch;
+        if (cl.snap.serverTime != snapTime) {
+            snapTime = cl.snap.serverTime;
+            offYaw = AngleSubtract(cl.snap.ps.camera_angles[YAW], viewYaw);
+            offPitch = AngleSubtract(cl.snap.ps.camera_angles[PITCH], viewPitch);
+        }
+        viewYaw += offYaw;
+        viewPitch += offPitch;
+    }
     err[0] = AngleSubtract(ang[YAW], viewYaw);
     err[1] = AngleSubtract(ang[PITCH], viewPitch);
     // The body's extent seen from the eye: about 20 units either side, feet to head, plus a
@@ -568,7 +581,21 @@ static float aimAssist(float dt) {
     int num;
     float err[2], at[2], strength;
     bool vehicle = false;
-    if (dt <= 0 || !aimOver(&num, err, at, &strength, &vehicle)) {
+    bool over = dt > 0 && aimOver(&num, err, at, &strength, &vehicle);
+    {
+        // TEMPORARY diagnostic build: remove before release.
+        static float dbgLeft;
+        dbgLeft -= dt;
+        if (dbgLeft <= 0) {
+            dbgLeft = 1.0f;
+            Com_Printf("AADBG cli: cam=%.0f %.0f pm_flags=0x%x turretflag=%d target='%s' over=%d vehicle=%d view=%.0f %.0f err=%.1f %.1f\n",
+                       cl.snap.ps.camera_angles[PITCH], cl.snap.ps.camera_angles[YAW], cl.snap.ps.pm_flags, (cl.snap.ps.pm_flags & PMF_TURRET) ? 1 : 0, aaTarget->string, over ? 1 : 0,
+                       vehicle ? 1 : 0, cl.viewangles[PITCH] + SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]),
+                       cl.viewangles[YAW] + SHORT2ANGLE(cl.snap.ps.delta_angles[YAW]), over ? err[0] : 0.0f,
+                       over ? err[1] : 0.0f);
+        }
+    }
+    if (!over) {
         aaNum = -1;
         return 1.0f;
     }
