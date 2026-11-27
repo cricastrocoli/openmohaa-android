@@ -18,7 +18,8 @@ que instala o jogo direto do instalador da GOG, no próprio aparelho, sem precis
 - 🆕 **Multiplayer online e em rede local**: lista de servidores da internet (mais de 200),
   entrada nas partidas, ou partida criada na sua rede para outro aparelho.
 - 🆕 **Mira assistida** (só na campanha, opcional): a mira desacelera e acompanha o inimigo
-  quando passa sobre ele, com um leve toque em direção ao tórax. Quem mira continua sendo você.
+  quando passa sobre ele, com um leve toque em direção ao tórax. Quem mira continua sendo você. Na metralhadora do
+  caminhão ela gruda mais no inimigo, a curta distância; nas metralhadoras fixas fica desligada.
 - 🆕 **Mira por giroscópio**: gire ou incline o aparelho para mirar. Ligada por padrão quando
   não há controle.
 - 🆕 **Proporção da imagem**: widescreen, **menus em 4:3** (menus e vídeos sem esticar,

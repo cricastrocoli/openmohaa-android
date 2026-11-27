@@ -19,7 +19,8 @@ computer needed.
 - 🆕 **Online and LAN multiplayer**: browse the internet servers (over 200 listed), join a
   match, or host one on your local network for another device.
 - 🆕 **Aim assist** (campaign only, optional): the crosshair slows down and follows an enemy
-  when it passes over one, with a light nudge toward the chest. You still do the aiming.
+  when it passes over one, with a light nudge toward the chest. You still do the aiming. On the truck's machine gun it
+  holds on more strongly, at short range; fixed machine guns get none.
 - 🆕 **Gyro aiming**: turn or tilt the device to aim. On by default when there's no
   controller.
 - 🆕 **Aspect ratio**: widescreen, **menus in 4:3** (menus and videos unstretched, play in
