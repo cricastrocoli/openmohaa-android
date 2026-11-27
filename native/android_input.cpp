@@ -27,6 +27,10 @@
 //                               second (605 / 1330 units, about 15 m / 34 m)
 //   rp_aa_track                 how much of the enemy's movement the crosshair follows (0.65)
 //   rp_aa_nudge                 seconds of the nudge toward the chest on reaching an enemy (0.12)
+//   rp_aa_v*                    the same on a moving vehicle's gun (the truck), much stronger:
+//                               vslow 0.4, vfulldist / vmaxdist 1200 / 2400, vtrack 1, vpull
+//                               (how fast the crosshair is drawn to the chest, per second) 3,
+//                               vmargin (degrees around the body that still count) 3
 //
 // Aim assist, like a "free aim, assisted" mode: the crosshair is the player's alone until it
 // is over an enemy's body (the game names the nearest one in rp_aimtarget, see
@@ -54,6 +58,7 @@ static cvar_t* buttonMap;
 static void loadButtonMap(void);
 
 static cvar_t *aaOn, *aaSlow, *aaTrack, *aaNudge, *aaTarget, *gametype, *aaFull, *aaMax;
+static cvar_t *aaVSlow, *aaVFull, *aaVMax, *aaVTrack, *aaVPull, *aaVMargin;
 static cvar_t *aimScale, *aimYaw, *aimPitch, *aimDead, *aimOuter, *aimCurve, *rampDelay, *rampTime, *rampBoost,
               *aimInvert, *moveDead, *cursorSpeed, *touchAim;
 
@@ -72,6 +77,12 @@ static void registerCvars(void) {
     aaTrack     = Cvar_Get("rp_aa_track", "0.65", 0);
     aaNudge     = Cvar_Get("rp_aa_nudge", "0.12", 0);
     aaTarget    = Cvar_Get("rp_aimtarget", "", 0);
+    aaVSlow     = Cvar_Get("rp_aa_vslow", "0.4", 0);
+    aaVFull     = Cvar_Get("rp_aa_vfulldist", "1200", 0);
+    aaVMax      = Cvar_Get("rp_aa_vmaxdist", "2400", 0);
+    aaVTrack    = Cvar_Get("rp_aa_vtrack", "1", 0);
+    aaVPull     = Cvar_Get("rp_aa_vpull", "3", 0);
+    aaVMargin   = Cvar_Get("rp_aa_vmargin", "3", 0);
     gametype    = Cvar_Get("g_gametype", "0", 0);
     aimYaw      = Cvar_Get("rp_aim_yaw", "200", CVAR_ARCHIVE);
     aimPitch    = Cvar_Get("rp_aim_pitch", "140", CVAR_ARCHIVE);
@@ -503,14 +514,16 @@ static float aaYaw, aaPitch, aaNudgeLeft;
 
 // Whether the crosshair is over the named enemy's body; err gets the angle to its chest
 // {yaw, pitch}, at gets the chest's angles from the eye.
-static bool aimOver(int* num, float* err, float* at, float* strength) {
+static bool aimOver(int* num, float* err, float* at, float* strength, bool* vehicle) {
     if (!aaOn || !aaOn->integer || gametype->integer != 0 || !aaTarget->string[0]) return false;
     vec3_t chest, eye, dir, ang, view;
     float bottom, top;
-    int n = sscanf(aaTarget->string, "%d %f %f %f %f %f %f %f %f", num, &chest[0], &chest[1], &chest[2], &bottom,
-                   &top, &view[0], &view[1], &view[2]);
-    if (n != 6 && n != 9) return false;
-    if (n == 9 && (cl.snap.ps.pm_flags & PMF_TURRET)) {
+    int onVehicle = 0;
+    int n = sscanf(aaTarget->string, "%d %f %f %f %f %f %f %f %f %d", num, &chest[0], &chest[1], &chest[2], &bottom,
+                   &top, &view[0], &view[1], &view[2], &onVehicle);
+    if (n < 6) return false;
+    *vehicle = n >= 10 && onVehicle && (cl.snap.ps.pm_flags & PMF_TURRET);
+    if (*vehicle) {
         // On a turret (fixed or on a vehicle) the view is the turret's camera, which only the
         // game knows: it sends its position along.
         VectorCopy(view, eye);
@@ -523,7 +536,8 @@ static bool aimOver(int* num, float* err, float* at, float* strength) {
     float flat = sqrtf(dir[0] * dir[0] + dir[1] * dir[1]);
     if (flat < 8) return false;
     // Full help up close, fading out with distance.
-    float dist = VectorLength(dir), full = aaFull->value, far = aaMax->value;
+    float dist = VectorLength(dir);
+    float full = *vehicle ? aaVFull->value : aaFull->value, far = *vehicle ? aaVMax->value : aaMax->value;
     *strength = dist <= full ? 1.0f : dist >= far ? 0.0f : (far - dist) / (far - full);
     if (*strength <= 0) return false;
     vectoangles(dir, ang);
@@ -537,9 +551,13 @@ static bool aimOver(int* num, float* err, float* at, float* strength) {
     err[1] = AngleSubtract(ang[PITCH], viewPitch);
     // The body's extent seen from the eye: about 20 units either side, feet to head, plus a
     // degree of margin. (Pitch grows downward.)
-    float half = RAD2DEG(atanf(20.0f / flat)) + 1.0f;
-    float pTop = -RAD2DEG(atan2f(top - eye[2], flat)) - 1.0f;
-    float pBottom = -RAD2DEG(atan2f(bottom - eye[2], flat)) + 1.0f;
+    // On a vehicle's gun the margin is wider, and wider still while already on this enemy, so
+    // the crosshair holds on while the truck moves.
+    float margin = 1.0f;
+    if (*vehicle) margin = aaVMargin->value * (*num == aaNum ? 1.5f : 1.0f);
+    float half = RAD2DEG(atanf(20.0f / flat)) + margin;
+    float pTop = -RAD2DEG(atan2f(top - eye[2], flat)) - margin;
+    float pBottom = -RAD2DEG(atan2f(bottom - eye[2], flat)) + margin;
     float pitch = AngleNormalize180(viewPitch);
     return fabsf(err[0]) < half && pitch > pTop && pitch < pBottom;
 }
@@ -549,7 +567,8 @@ static bool aimOver(int* num, float* err, float* at, float* strength) {
 static float aimAssist(float dt) {
     int num;
     float err[2], at[2], strength;
-    if (dt <= 0 || !aimOver(&num, err, at, &strength)) {
+    bool vehicle = false;
+    if (dt <= 0 || !aimOver(&num, err, at, &strength, &vehicle)) {
         aaNum = -1;
         return 1.0f;
     }
@@ -557,7 +576,7 @@ static float aimAssist(float dt) {
         // Tracking: follow the chest's movement since last frame (the enemy's and the
         // player's), keeping the offset the player chose. Capped, in case of a jump.
         float dy = AngleSubtract(at[0], aaYaw), dp = AngleSubtract(at[1], aaPitch);
-        float k = aaTrack->value * strength;
+        float k = (vehicle ? aaVTrack->value : aaTrack->value) * strength;
         if (fabsf(dy) < 5 && fabsf(dp) < 5) {
             cl.viewangles[YAW] += dy * k;
             cl.viewangles[PITCH] += dp * k;
@@ -572,10 +591,17 @@ static float aimAssist(float dt) {
         cl.viewangles[PITCH] += err[1] * f;
         aaNudgeLeft -= dt;
     }
+    if (vehicle && aaVPull->value > 0) {
+        // On a moving vehicle's gun: a steady pull toward the chest while over the enemy, so
+        // the crosshair sticks to it.
+        float f = fminf(1.0f, dt * aaVPull->value * strength);
+        cl.viewangles[YAW] += err[0] * f;
+        cl.viewangles[PITCH] += err[1] * f;
+    }
     aaNum = num;
     aaYaw = at[0];
     aaPitch = at[1];
-    return 1.0f - (1.0f - aaSlow->value) * strength;
+    return 1.0f - (1.0f - (vehicle ? aaVSlow->value : aaSlow->value)) * strength;
 }
 
 // Gyro aiming (GyroAim.java): degrees turned since the last frame.
