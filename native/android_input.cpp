@@ -505,13 +505,20 @@ static float aaYaw, aaPitch, aaNudgeLeft;
 // {yaw, pitch}, at gets the chest's angles from the eye.
 static bool aimOver(int* num, float* err, float* at, float* strength) {
     if (!aaOn || !aaOn->integer || gametype->integer != 0 || !aaTarget->string[0]) return false;
-    vec3_t chest, eye, dir, ang;
+    vec3_t chest, eye, dir, ang, view;
     float bottom, top;
-    if (sscanf(aaTarget->string, "%d %f %f %f %f %f", num, &chest[0], &chest[1], &chest[2], &bottom, &top) != 6)
-        return false;
-    // The eye: the player's origin plus view height (vEyePos isn't sent to the client).
-    VectorCopy(cl.snap.ps.origin, eye);
-    eye[2] += cl.snap.ps.viewheight;
+    int n = sscanf(aaTarget->string, "%d %f %f %f %f %f %f %f %f", num, &chest[0], &chest[1], &chest[2], &bottom,
+                   &top, &view[0], &view[1], &view[2]);
+    if (n != 6 && n != 9) return false;
+    if (n == 9 && (cl.snap.ps.pm_flags & PMF_TURRET)) {
+        // On a turret (fixed or on a vehicle) the view is the turret's camera, which only the
+        // game knows: it sends its position along.
+        VectorCopy(view, eye);
+    } else {
+        // The eye: the player's origin plus view height (vEyePos isn't sent to the client).
+        VectorCopy(cl.snap.ps.origin, eye);
+        eye[2] += cl.snap.ps.viewheight;
+    }
     VectorSubtract(chest, eye, dir);
     float flat = sqrtf(dir[0] * dir[0] + dir[1] * dir[1]);
     if (flat < 8) return false;
