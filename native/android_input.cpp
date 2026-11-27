@@ -582,19 +582,6 @@ static float aimAssist(float dt) {
     float err[2], at[2], strength;
     bool vehicle = false;
     bool over = dt > 0 && aimOver(&num, err, at, &strength, &vehicle);
-    {
-        // TEMPORARY diagnostic build: remove before release.
-        static float dbgLeft;
-        dbgLeft -= dt;
-        if (dbgLeft <= 0) {
-            dbgLeft = 1.0f;
-            Com_Printf("AADBG cli: cam=%.0f %.0f pm_flags=0x%x turretflag=%d target='%s' over=%d vehicle=%d view=%.0f %.0f err=%.1f %.1f\n",
-                       cl.snap.ps.camera_angles[PITCH], cl.snap.ps.camera_angles[YAW], cl.snap.ps.pm_flags, (cl.snap.ps.pm_flags & PMF_TURRET) ? 1 : 0, aaTarget->string, over ? 1 : 0,
-                       vehicle ? 1 : 0, cl.viewangles[PITCH] + SHORT2ANGLE(cl.snap.ps.delta_angles[PITCH]),
-                       cl.viewangles[YAW] + SHORT2ANGLE(cl.snap.ps.delta_angles[YAW]), over ? err[0] : 0.0f,
-                       over ? err[1] : 0.0f);
-        }
-    }
     if (!over) {
         aaNum = -1;
         return 1.0f;
