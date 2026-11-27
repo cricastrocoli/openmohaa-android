@@ -28,7 +28,7 @@
 //   rp_aa_track                 how much of the enemy's movement the crosshair follows (0.65)
 //   rp_aa_nudge                 seconds of the nudge toward the chest on reaching an enemy (0.12)
 //   rp_aa_v*                    the same on a moving vehicle's gun (the truck), much stronger:
-//                               vslow 0.4, vfulldist / vmaxdist 1300 / 2600, vtrack 1, vpull
+//                               vslow 0.4, vfulldist / vmaxdist 1100 / 2200, vtrack 1, vpull
 //                               (how fast the crosshair is drawn to the chest, per second) 3,
 //                               vmargin (degrees around the body that still count) 3
 //
@@ -78,8 +78,8 @@ static void registerCvars(void) {
     aaNudge     = Cvar_Get("rp_aa_nudge", "0.12", 0);
     aaTarget    = Cvar_Get("rp_aimtarget", "", 0);
     aaVSlow     = Cvar_Get("rp_aa_vslow", "0.4", 0);
-    aaVFull     = Cvar_Get("rp_aa_vfulldist", "1300", 0);
-    aaVMax      = Cvar_Get("rp_aa_vmaxdist", "2600", 0);
+    aaVFull     = Cvar_Get("rp_aa_vfulldist", "1100", 0);
+    aaVMax      = Cvar_Get("rp_aa_vmaxdist", "2200", 0);
     aaVTrack    = Cvar_Get("rp_aa_vtrack", "1", 0);
     aaVPull     = Cvar_Get("rp_aa_vpull", "3", 0);
     aaVMargin   = Cvar_Get("rp_aa_vmargin", "3", 0);
